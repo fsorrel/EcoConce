@@ -26,35 +26,95 @@ import {
 import type { UsuarioSesion } from "../lib/api";
 import { useEffect, useMemo, useState } from "react";
 
-const navItems = {
+type Role = "ciudadano" | "admin" | "mantenedor";
+
+type NavItem = {
+  icon: typeof Home;
+  label: string;
+  path: string;
+};
+
+type NavSection = {
+  title: string;
+  items: NavItem[];
+};
+
+const navSections: Record<Role, NavSection[]> = {
   ciudadano: [
-    { icon: Home, label: "Inicio", path: "/ciudadano" },
-    { icon: Map, label: "Mapa de Reciclaje", path: "/ciudadano/mapa" },
-    { icon: ClipboardList, label: "Formularios", path: "/ciudadano/formularios" },
-    { icon: BookOpen, label: "Guías", path: "/ciudadano/guias" },
-    { icon: Trophy, label: "Premios", path: "/ciudadano/premios" },
-    { icon: FileWarning, label: "Reportar punto", path: "/ciudadano/reportar" },
-    { icon: User, label: "Mi Perfil", path: "/ciudadano/perfil" },
+    {
+      title: "General",
+      items: [
+        { icon: Home, label: "Inicio", path: "/ciudadano" },
+        { icon: Map, label: "Mapa de Reciclaje", path: "/ciudadano/mapa" },
+      ],
+    },
+    {
+      title: "Actividad",
+      items: [
+        { icon: ClipboardList, label: "Formularios", path: "/ciudadano/formularios" },
+        { icon: Trophy, label: "Premios", path: "/ciudadano/premios" },
+        { icon: FileWarning, label: "Reportar punto", path: "/ciudadano/reportar" },
+      ],
+    },
+    {
+      title: "Información",
+      items: [
+        { icon: BookOpen, label: "Guías", path: "/ciudadano/guias" },
+        { icon: User, label: "Mi Perfil", path: "/ciudadano/perfil" },
+      ],
+    },
   ],
   admin: [
-    { icon: BarChart3, label: "Resumen", path: "/admin" },
-    { icon: Users, label: "Usuarios activos", path: "/admin/usuarios" },
-    { icon: MapPin, label: "Puntos de Reciclaje", path: "/admin/puntos" },
-    { icon: Gift, label: "Premios", path: "/admin/premios" },
-    { icon: AlertTriangle, label: "Reportes", path: "/admin/reportes" },
-    { icon: BookOpen, label: "Contenido", path: "/admin" },
+    {
+      title: "General",
+      items: [
+        { icon: BarChart3, label: "Resumen", path: "/admin" },
+      ],
+    },
+    {
+      title: "Gestión",
+      items: [
+        { icon: Users, label: "Usuarios activos", path: "/admin/usuarios" },
+        { icon: MapPin, label: "Puntos de Reciclaje", path: "/admin/puntos" },
+        { icon: Gift, label: "Premios", path: "/admin/premios" },
+      ],
+    },
+    {
+      title: "Seguimiento",
+      items: [
+        { icon: AlertTriangle, label: "Reportes", path: "/admin/reportes" },
+      ],
+    },
+    {
+      title: "Contenido",
+      items: [
+        { icon: BookOpen, label: "Contenido", path: "/admin" },
+      ],
+    },
   ],
   mantenedor: [
-    { icon: Home, label: "Mis Puntos", path: "/mantenedor" },
-    { icon: AlertTriangle, label: "Reportes", path: "/mantenedor/reportes" },
-    { icon: Settings, label: "Configuración", path: "/mantenedor" },
+    {
+      title: "General",
+      items: [
+        { icon: Home, label: "Mis Puntos", path: "/mantenedor" },
+      ],
+    },
+    {
+      title: "Seguimiento",
+      items: [
+        { icon: AlertTriangle, label: "Reportes", path: "/mantenedor/reportes" },
+      ],
+    },
+    {
+      title: "Sistema",
+      items: [
+        { icon: Settings, label: "Configuración", path: "/mantenedor" },
+      ],
+    },
   ],
 };
 
-const roleLabel = (
-  currentRole: "ciudadano" | "admin" | "mantenedor",
-  usuario: UsuarioSesion | null
-) => {
+const roleLabel = (currentRole: Role, usuario: UsuarioSesion | null) => {
   if (currentRole === "admin") return "Administrador";
   if (currentRole === "mantenedor") return "Mantenedor";
   return `${(usuario?.puntos ?? 0).toLocaleString("es-CL")} Pts`;
@@ -65,10 +125,10 @@ export function DashboardLayout() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(() => getCurrentUser());
 
-  const currentRole = useMemo(() => {
-    if (location.pathname.startsWith("/admin")) return "admin" as const;
-    if (location.pathname.startsWith("/mantenedor")) return "mantenedor" as const;
-    return "ciudadano" as const;
+  const currentRole = useMemo<Role>(() => {
+    if (location.pathname.startsWith("/admin")) return "admin";
+    if (location.pathname.startsWith("/mantenedor")) return "mantenedor";
+    return "ciudadano";
   }, [location.pathname]);
 
   useEffect(() => {
@@ -101,7 +161,7 @@ export function DashboardLayout() {
     }
   }, [usuario, currentRole, navigate]);
 
-  const currentNav = navItems[currentRole];
+  const sections = navSections[currentRole];
 
   const handleLogout = () => {
     clearCurrentUser();
@@ -110,7 +170,7 @@ export function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-[#f5f7f5]">
-      <aside className="w-64 bg-[#3d5a47] text-white flex flex-col">
+      <aside className="w-72 bg-[#3d5a47] text-white flex flex-col">
         <div className="p-6 border-b border-white/10">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 bg-[#6fae7f] rounded-full flex items-center justify-center">
@@ -123,34 +183,46 @@ export function DashboardLayout() {
           </Link>
         </div>
 
-        <nav className="flex-1 py-6">
-          <ul className="space-y-1">
-            {currentNav.map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                location.pathname === item.path ||
-                (item.path !== `/${currentRole}` && location.pathname.startsWith(item.path));
+        <nav className="sidebar-scroll flex-1 py-5 overflow-y-auto">
+          <div className="space-y-5">
+            {sections.map((section) => (
+              <div key={section.title}>
+                <p className="px-6 mb-2 text-xs font-semibold uppercase tracking-wider text-white/50">
+                  {section.title}
+                </p>
 
-              return (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center gap-3 px-6 py-3 transition-colors ${
-                      isActive ? "bg-white/20 border-l-4 border-[#8ec79f]" : "hover:bg-white/10"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                <ul className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive =
+                      location.pathname === item.path ||
+                      (item.path !== `/${currentRole}` && location.pathname.startsWith(item.path));
+
+                    return (
+                      <li key={`${section.title}-${item.path}-${item.label}`}>
+                        <Link
+                          to={item.path}
+                          className={`flex items-center gap-3 px-6 py-3 transition-colors ${
+                            isActive
+                              ? "bg-white/20 border-l-4 border-[#8ec79f]"
+                              : "hover:bg-white/10 border-l-4 border-transparent"
+                          }`}
+                        >
+                          <Icon className="w-5 h-5 shrink-0" />
+                          <span className="text-sm">{item.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </nav>
 
         <div className="p-6 border-t border-white/10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#6fae7f] rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#6fae7f] rounded-full flex items-center justify-center shrink-0">
               <User className="w-6 h-6" />
             </div>
 
