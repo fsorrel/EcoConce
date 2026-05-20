@@ -19,6 +19,7 @@ import { MaintainerDashboard } from "./pages/MaintainerDashboard";
 import { MaintainerPointDetail } from "./pages/MaintainerPointDetail";
 import { ManagePoints } from "./pages/ManagePoints";
 import { DashboardLayout } from "./components/DashboardLayout";
+import { PuntosMantenedor } from "./pages/PuntosMantenedor";
 
 export const router = createBrowserRouter([
   {
@@ -62,6 +63,7 @@ export const router = createBrowserRouter([
     Component: DashboardLayout,
     children: [
       { index: true, Component: MaintainerDashboard },
+      { path: "puntos", Component: PuntosMantenedor },
       { path: "puntos/:id", Component: MaintainerPointDetail },
       { path: "reportes", Component: ReportesMantenedor },
     ],

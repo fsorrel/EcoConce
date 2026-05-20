@@ -92,23 +92,23 @@ const navSections: Record<Role, NavSection[]> = {
       ],
     },
   ],
-  mantenedor: [
+      mantenedor: [
     {
       title: "General",
       items: [
-        { icon: Home, label: "Mis Puntos", path: "/mantenedor" },
+        { icon: Home, label: "Resumen", path: "/mantenedor" },
+      ],
+    },
+    {
+      title: "Gestión",
+      items: [
+        { icon: MapPin, label: "Mis puntos", path: "/mantenedor/puntos" },
       ],
     },
     {
       title: "Seguimiento",
       items: [
         { icon: AlertTriangle, label: "Reportes", path: "/mantenedor/reportes" },
-      ],
-    },
-    {
-      title: "Sistema",
-      items: [
-        { icon: Settings, label: "Configuración", path: "/mantenedor" },
       ],
     },
   ],

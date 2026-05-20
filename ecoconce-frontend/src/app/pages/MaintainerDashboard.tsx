@@ -1,115 +1,142 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
-  AlertCircle,
+  AlertTriangle,
   CheckCircle,
+  Loader2,
   MapPin,
+  Package,
   RefreshCw,
   Wrench,
-  ArrowRight,
-  Package,
 } from "lucide-react";
-import { api, getCurrentUser, PuntoReciclaje } from "../lib/api";
+import { api, getCurrentUser, refreshCurrentUserFromBackend } from "../lib/api";
+import type { PuntoReciclaje, ReportePuntoResponse, UsuarioSesion } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-
-const estadoColor = (estado: string) => {
-  const normalizado = estado?.toUpperCase();
-
-  if (normalizado.includes("INACTIVO")) {
-    return "bg-gray-100 text-gray-700 border-gray-200";
-  }
-
-  if (normalizado.includes("OPERATIVO") || normalizado.includes("ACTIVO")) {
-    return "bg-green-100 text-green-700 border-green-200";
-  }
-
-  if (normalizado.includes("LLENO") || normalizado.includes("COLAPSADO")) {
-    return "bg-red-100 text-red-700 border-red-200";
-  }
-
-  if (normalizado.includes("MANTENIMIENTO")) {
-    return "bg-yellow-100 text-yellow-700 border-yellow-200";
-  }
-
-  return "bg-blue-100 text-blue-700 border-blue-200";
-};
 
 export function MaintainerDashboard() {
-  const usuario = getCurrentUser();
-  const mantenedorId = usuario?.id ?? 0;
-
+  const [usuario, setUsuario] = useState<UsuarioSesion | null>(() => getCurrentUser());
   const [puntos, setPuntos] = useState<PuntoReciclaje[]>([]);
+  const [reportes, setReportes] = useState<ReportePuntoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  const totalOperativos = useMemo(() => {
-    return puntos.filter((punto) => punto.estado?.toUpperCase().includes("OPERATIVO")).length;
-  }, [puntos]);
-
-  const totalAlertas = useMemo(() => {
-    return puntos.filter((punto) => {
-      const estado = (punto.estado ?? "").toUpperCase();
-      return (
-        estado.includes("LLENO") ||
-        estado.includes("MANTENIMIENTO") ||
-        estado.includes("INACTIVO")
-      );
-    }).length;
-  }, [puntos]);
-
-  const totalMaterialesLlenos = useMemo(() => {
-    return puntos.reduce((total, punto) => {
-      return total + (punto.materialesDetalle ?? []).filter((material) => material.lleno).length;
-    }, 0);
-  }, [puntos]);
-
-  const cargarDatos = async () => {
+  const cargarDashboard = async () => {
     setLoading(true);
     setError("");
-    setSuccess("");
 
     try {
-      if (!mantenedorId) {
-        throw new Error("No se encontró el mantenedor activo. Inicia sesión nuevamente.");
+      let currentUser = getCurrentUser();
+
+      const updated = await refreshCurrentUserFromBackend().catch(() => null);
+      if (updated) {
+        currentUser = updated;
+        setUsuario(updated);
       }
 
-      const puntosData = await api.puntosMantenedor(mantenedorId);
+      if (!currentUser?.id) {
+        throw new Error("No se encontró la sesión del mantenedor.");
+      }
+
+      const [puntosData, reportesData] = await Promise.all([
+        api.puntosMantenedor(currentUser.id),
+        api.reportesMantenedor(currentUser.id),
+      ]);
+
       setPuntos(puntosData);
-      setSuccess("Puntos actualizados correctamente.");
+      setReportes(reportesData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudieron cargar los puntos del mantenedor");
+      setError(err instanceof Error ? err.message : "No se pudo cargar el panel del mantenedor.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    cargarDatos();
+    cargarDashboard();
   }, []);
 
+  const resumen = useMemo(() => {
+    const puntosActivos = puntos.filter((punto) => {
+      const estado = (punto.estado ?? "").toLowerCase();
+      return estado.includes("activo") || estado.includes("disponible");
+    }).length;
+
+    const puntosConMaterialLleno = puntos.filter((punto) =>
+      punto.materialesDetalle?.some((material) => material.lleno)
+    ).length;
+
+    const totalMateriales = puntos.reduce(
+      (total, punto) => total + (punto.materialesDetalle?.length ?? 0),
+      0
+    );
+
+    const materialesLlenos = puntos.reduce(
+      (total, punto) =>
+        total + (punto.materialesDetalle?.filter((material) => material.lleno).length ?? 0),
+      0
+    );
+
+    return {
+      puntosAsignados: puntos.length,
+      puntosActivos,
+      puntosConMaterialLleno,
+      totalReportes: reportes.length,
+      totalMateriales,
+      materialesLlenos,
+    };
+  }, [puntos, reportes]);
+
+  const stats = [
+    {
+      label: "Puntos asignados",
+      value: resumen.puntosAsignados,
+      description: "Puntos bajo tu responsabilidad",
+      icon: MapPin,
+    },
+    {
+      label: "Puntos activos",
+      value: resumen.puntosActivos,
+      description: "Funcionando o disponibles",
+      icon: CheckCircle,
+    },
+    {
+      label: "Reportes",
+      value: resumen.totalReportes,
+      description: "Reportes ciudadanos asociados",
+      icon: AlertTriangle,
+    },
+    {
+      label: "Materiales llenos",
+      value: resumen.materialesLlenos,
+      description: `${resumen.totalMateriales} materiales monitoreados`,
+      icon: Package,
+    },
+  ];
+
   return (
-    <div className="p-8 space-y-8 bg-[#f5f7f5]">
-      <div className="flex items-start justify-between gap-4">
+    <div className="p-8 space-y-8 bg-[#f5f7f5] min-h-screen">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
             <Wrench className="w-8 h-8 text-[#3d5a47]" />
-            <h1 className="text-3xl font-bold text-[#2d4437]">
-              Panel del Mantenedor
-            </h1>
+            <h1 className="text-4xl font-bold text-[#1f3b2d]">Resumen del mantenedor</h1>
           </div>
+
           <p className="text-gray-600 mt-2">
-            Revisa los puntos de reciclaje que tienes asignados y entra al detalle para gestionarlos.
+            Vista general de tus puntos asignados, reportes y materiales que requieren atención.
+          </p>
+
+          <p className="text-sm text-gray-500 mt-1">
+            Mantenedor: {usuario?.nombreAlias ?? "Sesión no disponible"}
           </p>
         </div>
 
         <Button
+          onClick={cargarDashboard}
           variant="outline"
-          onClick={cargarDatos}
-          disabled={loading}
           className="border-[#3d5a47] text-[#3d5a47]"
+          disabled={loading}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Actualizar
@@ -117,155 +144,133 @@ export function MaintainerDashboard() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 flex gap-2">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <span>{error}</span>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
         </div>
       )}
-
-      {success && !error && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-700 flex gap-2">
-          <CheckCircle className="w-5 h-5 shrink-0" />
-          <span>{success}</span>
-        </div>
-      )}
-
-      <div className="grid md:grid-cols-4 gap-6">
-        <Card className="border-[#6fae7f]/20">
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-[#2d4437] mb-1">{puntos.length}</p>
-            <p className="text-sm text-gray-600">Puntos asignados</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-[#6fae7f]/20">
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-green-600 mb-1">{totalOperativos}</p>
-            <p className="text-sm text-gray-600">Operativos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-[#6fae7f]/20">
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-yellow-600 mb-1">{totalAlertas}</p>
-            <p className="text-sm text-gray-600">Puntos con alerta</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-[#6fae7f]/20">
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-red-600 mb-1">{totalMaterialesLlenos}</p>
-            <p className="text-sm text-gray-600">Materiales llenos</p>
-          </CardContent>
-        </Card>
-      </div>
 
       {loading ? (
         <Card>
-          <CardContent className="p-12 text-center text-gray-500">
-            Cargando puntos asignados...
-          </CardContent>
-        </Card>
-      ) : puntos.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-400 mb-2">
-              No tienes puntos asignados
-            </h3>
-            <p className="text-gray-500">
-              Un administrador debe asignarte puntos de reciclaje para que puedas gestionarlos.
-            </p>
+          <CardContent className="p-10 flex items-center justify-center gap-2 text-gray-600">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Cargando resumen del mantenedor...
           </CardContent>
         </Card>
       ) : (
-        <div className="grid xl:grid-cols-2 gap-6">
-          {puntos.map((punto) => {
-            const materialesLlenos = (punto.materialesDetalle ?? []).filter((material) => material.lleno);
-            const materialesDisponibles = (punto.materialesDetalle ?? []).filter((material) => material.disponible);
+        <>
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
 
-            return (
-              <Card key={punto.id} className="border-[#6fae7f]/20 hover:shadow-lg transition">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <CardTitle className="text-[#2d4437]">{punto.nombre}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {punto.direccion}
-                      </CardDescription>
+              return (
+                <Card key={stat.label} className="border-[#6fae7f]/20 bg-white">
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 rounded-full bg-[#e8f5e9] text-[#3d5a47] flex items-center justify-center mb-5">
+                      <Icon className="w-6 h-6" />
                     </div>
 
-                    <Badge className={estadoColor(punto.estado)}>
-                      {punto.estado}
-                    </Badge>
-                  </div>
-                </CardHeader>
+                    <p className="text-3xl font-bold text-[#1f3b2d]">
+                      {stat.value.toLocaleString("es-CL")}
+                    </p>
 
-                <CardContent className="space-y-5">
-                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <p className="font-medium text-[#2d4437] mt-1">{stat.label}</p>
+                    <p className="text-sm text-gray-500 mt-1">{stat.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="grid xl:grid-cols-[1fr_1fr] gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Accesos principales</CardTitle>
+                <CardDescription>
+                  Usa estas opciones para revisar tus puntos o reportes.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="grid md:grid-cols-2 gap-3">
+                <Link to="/mantenedor/puntos">
+                  <Button variant="outline" className="w-full justify-start h-auto py-4 border-[#6fae7f]/30">
+                    <MapPin className="w-5 h-5 mr-3 text-[#3d5a47]" />
+                    <span className="text-left">
+                      <span className="block font-medium">Ver mis puntos</span>
+                      <span className="block text-xs text-gray-500">Lista completa de puntos asignados</span>
+                    </span>
+                  </Button>
+                </Link>
+
+                <Link to="/mantenedor/reportes">
+                  <Button variant="outline" className="w-full justify-start h-auto py-4 border-[#6fae7f]/30">
+                    <AlertTriangle className="w-5 h-5 mr-3 text-[#3d5a47]" />
+                    <span className="text-left">
+                      <span className="block font-medium">Ver reportes</span>
+                      <span className="block text-xs text-gray-500">Reportes ciudadanos asociados</span>
+                    </span>
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Estado general</CardTitle>
+                <CardDescription>
+                  Alertas rápidas sobre tus puntos asignados.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {resumen.puntosAsignados === 0 ? (
+                  <div className="flex items-start gap-3 rounded-xl bg-amber-50 p-4">
+                    <AlertTriangle className="w-5 h-5 text-amber-700 mt-0.5" />
                     <div>
-                      <p className="text-gray-500">Comuna</p>
-                      <p className="font-medium text-[#2d4437]">{punto.comuna}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-500">Radio validación</p>
-                      <p className="font-medium text-[#2d4437]">{punto.radioValidacionM} m</p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-500">Materiales disponibles</p>
-                      <p className="font-medium text-green-700">{materialesDisponibles.length}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-500">Materiales llenos</p>
-                      <p className="font-medium text-red-700">{materialesLlenos.length}</p>
-                    </div>
-                  </div>
-
-                  <div className="border-t pt-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-[#3d5a47]" />
-                      <p className="text-sm font-medium text-[#2d4437]">
-                        Resumen de materiales
+                      <p className="font-medium text-amber-900">Sin puntos asignados</p>
+                      <p className="text-sm text-amber-800">
+                        Todavía no tienes puntos de reciclaje asociados.
                       </p>
                     </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {(punto.materialesDetalle ?? []).length > 0 ? (
-                        punto.materialesDetalle.map((material) => (
-                          <Badge
-                            key={`${punto.id}-${material.materialId}`}
-                            variant="outline"
-                            className={
-                              material.lleno
-                                ? "border-red-200 text-red-700 bg-red-50"
-                                : "border-green-200 text-green-700 bg-green-50"
-                            }
-                          >
-                            {material.nombre}: {material.lleno ? "Lleno" : "Disponible"}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          Sin materiales asociados.
-                        </p>
-                      )}
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3 rounded-xl bg-green-50 p-4">
+                    <CheckCircle className="w-5 h-5 text-green-700 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-green-900">Puntos cargados correctamente</p>
+                      <p className="text-sm text-green-800">
+                        Se encontraron {resumen.puntosAsignados} punto(s) asignados.
+                      </p>
                     </div>
                   </div>
+                )}
 
-                  <Link to={`/mantenedor/puntos/${punto.id}`}>
-                    <Button className="w-full bg-[#3d5a47] hover:bg-[#2d4437]">
-                      Gestionar punto
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                {resumen.puntosConMaterialLleno > 0 && (
+                  <div className="flex items-start gap-3 rounded-xl bg-red-50 p-4">
+                    <Package className="w-5 h-5 text-red-700 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-red-900">Materiales llenos</p>
+                      <p className="text-sm text-red-800">
+                        Hay {resumen.puntosConMaterialLleno} punto(s) con materiales llenos.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {resumen.totalReportes > 0 && (
+                  <div className="flex items-start gap-3 rounded-xl bg-amber-50 p-4">
+                    <AlertTriangle className="w-5 h-5 text-amber-700 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-amber-900">Reportes ciudadanos</p>
+                      <p className="text-sm text-amber-800">
+                        Tienes {resumen.totalReportes} reporte(s) asociados a tus puntos.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </>
       )}
     </div>
   );
