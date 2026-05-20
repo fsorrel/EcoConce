@@ -13,6 +13,7 @@ import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminUsers } from "./pages/AdminUsers";
 import { PremiosAdmin } from "./pages/PremiosAdmin";
 import { ReportesAdmin } from "./pages/ReportesAdmin";
+import { ReportesMantenedor } from "./pages/ReportesMantenedor";
 import { MaintainerDashboard } from "./pages/MaintainerDashboard";
 import { MaintainerPointDetail } from "./pages/MaintainerPointDetail";
 import { ManagePoints } from "./pages/ManagePoints";
@@ -60,6 +61,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: MaintainerDashboard },
       { path: "puntos/:id", Component: MaintainerPointDetail },
+      { path: "reportes", Component: ReportesMantenedor },
     ],
   },
 ]);

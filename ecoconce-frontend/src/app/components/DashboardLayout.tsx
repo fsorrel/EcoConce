@@ -43,7 +43,8 @@ const navItems = {
     { icon: BookOpen, label: "Contenido", path: "/admin" },
   ],
   mantenedor: [
-    { icon: Home, label: "Mi Punto", path: "/mantenedor" },
+    { icon: Home, label: "Mis Puntos", path: "/mantenedor" },
+    { icon: AlertTriangle, label: "Reportes", path: "/mantenedor/reportes" },
     { icon: Settings, label: "Configuración", path: "/mantenedor" },
   ],
 };
