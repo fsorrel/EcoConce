@@ -113,13 +113,29 @@ public class MapperService {
     public ReporteResponse toReporte(ReportePunto reporte) {
         return new ReporteResponse(
                 reporte.getId(),
-                reporte.getUsuario().getNombreAlias(),
-                reporte.getPunto().getNombre(),
-                reporte.getTipoReporte().getNombre(),
+                reporte.getUsuario() == null ? null : reporte.getUsuario().getId(),
+                reporte.getUsuario() == null ? null : reporte.getUsuario().getNombreAlias(),
+                reporte.getPunto() == null ? null : reporte.getPunto().getId(),
+                reporte.getPunto() == null ? null : reporte.getPunto().getNombre(),
+                reporte.getPunto() == null || reporte.getPunto().getMantenedor() == null
+                        ? null
+                        : reporte.getPunto().getMantenedor().getId(),
+                reporte.getPunto() == null || reporte.getPunto().getMantenedor() == null
+                        ? "Sin mantenedor"
+                        : reporte.getPunto().getMantenedor().getNombreAlias(),
+                reporte.getTipoReporte() == null ? null : reporte.getTipoReporte().getId(),
+                reporte.getTipoReporte() == null ? null : reporte.getTipoReporte().getNombre(),
                 reporte.getDescripcion(),
                 reporte.getFechaReporte()
         );
-    }
+        }
+
+public TipoReporteDto toTipoReporte(TipoReporte tipoReporte) {
+    return new TipoReporteDto(
+            tipoReporte.getId(),
+            tipoReporte.getNombre()
+    );
+}
 
     public UsuarioAdminDto toUsuarioAdminDto(Usuario usuario) {
         boolean protegido = usuario.getCorreo() != null
