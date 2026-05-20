@@ -237,6 +237,17 @@ export type Dashboard = {
 
 export type BdRow = Record<string, string | number | boolean | null>;
 
+export type RegionRow = {
+  id: number;
+  nombre: string;
+};
+
+export type ComunaRow = {
+  id: number;
+  nombre: string;
+  region_id: number;
+};
+
 export type FormularioRequest = {
   puntoId: number;
   distanciaMetros: number;
@@ -434,7 +445,9 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
-  comunas: () => apiFetch<BdRow[]>("/api/bd/comunas"),
+  regiones: () => apiFetch<RegionRow[]>("/api/bd/regiones"),
+
+  comunas: () => apiFetch<ComunaRow[]>("/api/bd/comunas"),
 
   estadosPunto: () => apiFetch<BdRow[]>("/api/bd/estado-punto"),
 
