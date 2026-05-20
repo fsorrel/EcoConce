@@ -12,6 +12,7 @@ import { PremiosCiudadano } from "./pages/PremiosCiudadano";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminUsers } from "./pages/AdminUsers";
 import { PremiosAdmin } from "./pages/PremiosAdmin";
+import { ReportesAdmin } from "./pages/ReportesAdmin";
 import { MaintainerDashboard } from "./pages/MaintainerDashboard";
 import { MaintainerPointDetail } from "./pages/MaintainerPointDetail";
 import { ManagePoints } from "./pages/ManagePoints";
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: "usuarios", Component: AdminUsers },
       { path: "puntos", Component: ManagePoints },
       { path: "premios", Component: PremiosAdmin },
+      { path: "reportes", Component: ReportesAdmin },
     ],
   },
   {

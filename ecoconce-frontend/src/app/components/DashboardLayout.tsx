@@ -12,6 +12,7 @@ import {
   Users,
   Trophy,
   Gift,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -38,6 +39,7 @@ const navItems = {
     { icon: Users, label: "Usuarios activos", path: "/admin/usuarios" },
     { icon: MapPin, label: "Puntos de Reciclaje", path: "/admin/puntos" },
     { icon: Gift, label: "Premios", path: "/admin/premios" },
+    { icon: AlertTriangle, label: "Reportes", path: "/admin/reportes" },
     { icon: BookOpen, label: "Contenido", path: "/admin" },
   ],
   mantenedor: [

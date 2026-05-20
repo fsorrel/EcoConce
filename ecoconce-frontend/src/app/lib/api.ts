@@ -199,6 +199,25 @@ export type PremioAdminRequest = {
   activo: string;
 };
 
+export type ReportePuntoResponse = {
+  id: number;
+  usuarioId: number | null;
+  usuario: string | null;
+  puntoId: number | null;
+  punto: string | null;
+  mantenedorId: number | null;
+  mantenedor: string | null;
+  tipoReporteId: number | null;
+  tipoReporte: string | null;
+  descripcion: string;
+  fechaReporte: string;
+};
+
+export type TipoReporte = {
+  id: number;
+  nombre: string;
+};
+
 export type Dashboard = {
   usuario: UsuarioResumen;
   resumen: ResumenReciclaje;
@@ -415,6 +434,13 @@ export const api = {
   formularios: () => apiFetch<BdRow[]>("/api/bd/formularios-reciclaje"),
 
   detalleFormularios: () => apiFetch<BdRow[]>("/api/bd/detalle-formulario-materiales"),
+
+  reportesAdmin: () => apiFetch<ReportePuntoResponse[]>("/api/reportes/admin"),
+
+  reportesMantenedor: (mantenedorId: number) =>
+    apiFetch<ReportePuntoResponse[]>(`/api/reportes/mantenedor/${mantenedorId}`),
+
+  tiposReporte: () => apiFetch<TipoReporte[]>("/api/reportes/tipos"),
 
   crearFormulario: (usuarioId: number, body: FormularioRequest) =>
     apiFetch(`/api/formularios/usuario/${usuarioId}`, {
