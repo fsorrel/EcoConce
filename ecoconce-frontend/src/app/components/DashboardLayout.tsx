@@ -13,6 +13,7 @@ import {
   Trophy,
   Gift,
   AlertTriangle,
+  FileWarning,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -32,6 +33,7 @@ const navItems = {
     { icon: ClipboardList, label: "Formularios", path: "/ciudadano/formularios" },
     { icon: BookOpen, label: "Guías", path: "/ciudadano/guias" },
     { icon: Trophy, label: "Premios", path: "/ciudadano/premios" },
+    { icon: FileWarning, label: "Reportar punto", path: "/ciudadano/reportar" },
     { icon: User, label: "Mi Perfil", path: "/ciudadano/perfil" },
   ],
   admin: [

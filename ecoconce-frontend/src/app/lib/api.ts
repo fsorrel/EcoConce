@@ -218,6 +218,13 @@ export type TipoReporte = {
   nombre: string;
 };
 
+export type ReportePuntoRequest = {
+  usuarioId: number;
+  puntoId: number;
+  tipoReporteId: number;
+  descripcion: string;
+};
+
 export type Dashboard = {
   usuario: UsuarioResumen;
   resumen: ResumenReciclaje;
@@ -441,6 +448,12 @@ export const api = {
     apiFetch<ReportePuntoResponse[]>(`/api/reportes/mantenedor/${mantenedorId}`),
 
   tiposReporte: () => apiFetch<TipoReporte[]>("/api/reportes/tipos"),
+
+  crearReportePunto: (body: ReportePuntoRequest) =>
+    apiFetch<ReportePuntoResponse>("/api/reportes", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   crearFormulario: (usuarioId: number, body: FormularioRequest) =>
     apiFetch(`/api/formularios/usuario/${usuarioId}`, {

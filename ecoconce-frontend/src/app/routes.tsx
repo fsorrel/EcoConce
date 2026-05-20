@@ -9,6 +9,7 @@ import { FormulariosReciclaje } from "./pages/FormulariosReciclaje";
 import { Guides } from "./pages/Guides";
 import { CitizenProfile } from "./pages/CitizenProfile";
 import { PremiosCiudadano } from "./pages/PremiosCiudadano";
+import { ReportarPuntoCiudadano } from "./pages/ReportarPuntoCiudadano";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminUsers } from "./pages/AdminUsers";
 import { PremiosAdmin } from "./pages/PremiosAdmin";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
       { path: "formularios", Component: FormulariosReciclaje },
       { path: "guias", Component: Guides },
       { path: "premios", Component: PremiosCiudadano },
+      { path: "reportar", Component: ReportarPuntoCiudadano },
       { path: "perfil", Component: CitizenProfile },
     ],
   },
