@@ -11,6 +11,7 @@ import {
   MapPin,
   Users,
   Trophy,
+  Gift,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -36,6 +37,7 @@ const navItems = {
     { icon: BarChart3, label: "Resumen", path: "/admin" },
     { icon: Users, label: "Usuarios activos", path: "/admin/usuarios" },
     { icon: MapPin, label: "Puntos de Reciclaje", path: "/admin/puntos" },
+    { icon: Gift, label: "Premios", path: "/admin/premios" },
     { icon: BookOpen, label: "Contenido", path: "/admin" },
   ],
   mantenedor: [

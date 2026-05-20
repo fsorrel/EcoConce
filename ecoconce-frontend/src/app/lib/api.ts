@@ -191,6 +191,14 @@ export type CanjeResponse = {
   fechaCanje: string;
 };
 
+export type PremioAdminRequest = {
+  nombre: string;
+  descripcion: string;
+  costoPuntos: number;
+  stock: number;
+  activo: string;
+};
+
 export type Dashboard = {
   usuario: UsuarioResumen;
   resumen: ResumenReciclaje;
@@ -360,6 +368,30 @@ export const api = {
   guias: () => apiFetch<Guia[]>("/api/guias"),
 
   premios: () => apiFetch<Premio[]>("/api/premios"),
+
+  premiosAdmin: () => apiFetch<Premio[]>("/api/premios/admin"),
+
+  crearPremioAdmin: (body: PremioAdminRequest) =>
+    apiFetch<Premio>("/api/premios/admin", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  actualizarPremioAdmin: (id: number, body: PremioAdminRequest) =>
+    apiFetch<Premio>(`/api/premios/admin/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  activarPremioAdmin: (id: number) =>
+    apiFetch<Premio>(`/api/premios/admin/${id}/activar`, {
+      method: "PUT",
+    }),
+
+  desactivarPremioAdmin: (id: number) =>
+    apiFetch<Premio>(`/api/premios/admin/${id}/desactivar`, {
+      method: "PUT",
+    }),
 
   canjearPremio: (premioId: number, usuarioId: number) =>
     apiFetch<CanjeResponse>(`/api/premios/${premioId}/canjear?usuarioId=${usuarioId}`, {
