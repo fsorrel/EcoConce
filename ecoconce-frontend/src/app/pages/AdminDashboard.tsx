@@ -191,6 +191,219 @@ export function AdminDashboard() {
     XLSX.writeFile(libro, "resumen-admin-ecoconce.xlsx");
   };
 
+  const exportarEstadisticasFormularios = async () => {
+    setError("");
+
+    try {
+      const formularios = await api.formularios();
+
+      const formulariosAprobados = formularios.filter((formulario) => {
+        return String(formulario.estado ?? "").trim().toUpperCase() === "APROBADO";
+      });
+
+      const totalAprobados = formulariosAprobados.length;
+
+      const puntosPorId = new Map(puntos.map((punto) => [Number(punto.id), punto]));
+      const usuariosPorId = new Map(usuarios.map((usuario) => [Number(usuario.id), usuario]));
+
+      const calcularPorcentaje = (cantidad: number) => {
+        if (totalAprobados === 0) return 0;
+        return Number((cantidad / totalAprobados).toFixed(4));
+      };
+
+      const conteoComunas = new Map<string, number>();
+      const conteoSexoGenero = new Map<string, number>();
+
+      const detalleFormularios = formulariosAprobados.map((formulario) => {
+        const puntoId = Number(formulario.punto_id ?? 0);
+        const usuarioId = Number(formulario.usuario_id ?? 0);
+
+        const punto = puntosPorId.get(puntoId);
+        const usuario = usuariosPorId.get(usuarioId);
+
+        const comuna = punto?.comuna?.trim() || "Sin comuna";
+        const sexoGenero = usuario?.sexoGenero?.trim() || "Sin información";
+
+        conteoComunas.set(comuna, (conteoComunas.get(comuna) ?? 0) + 1);
+        conteoSexoGenero.set(sexoGenero, (conteoSexoGenero.get(sexoGenero) ?? 0) + 1);
+
+        return {
+          ID: formulario.id ?? "",
+          Fecha: formulario.fecha_formulario ?? "",
+          Usuario: usuario?.nombreAlias ?? `Usuario #${usuarioId}`,
+          "Sexo/Género": sexoGenero,
+          Punto: punto?.nombre ?? `Punto #${puntoId}`,
+          Comuna: comuna,
+          Estado: formulario.estado ?? "",
+          "Puntos obtenidos": Number(formulario.total_puntos_obtenidos ?? 0),
+          "Distancia metros": Number(formulario.distancia_metros ?? 0),
+        };
+      });
+
+      const filasComunas = Array.from(conteoComunas.entries())
+        .map(([comuna, cantidad], index) => ({
+          Ranking: index + 1,
+          Comuna: comuna,
+          "Formularios aprobados": cantidad,
+          "Porcentaje del total": calcularPorcentaje(cantidad),
+        }))
+        .sort((a, b) => b["Formularios aprobados"] - a["Formularios aprobados"])
+        .map((fila, index) => ({
+          ...fila,
+          Ranking: index + 1,
+        }));
+
+      const filasSexoGenero = Array.from(conteoSexoGenero.entries())
+        .map(([sexoGenero, cantidad], index) => ({
+          Ranking: index + 1,
+          "Sexo/Género": sexoGenero,
+          "Formularios aprobados": cantidad,
+          "Porcentaje del total": calcularPorcentaje(cantidad),
+        }))
+        .sort((a, b) => b["Formularios aprobados"] - a["Formularios aprobados"])
+        .map((fila, index) => ({
+          ...fila,
+          Ranking: index + 1,
+        }));
+
+      const datosGraficoComuna = filasComunas.map((fila) => ({
+        Comuna: fila.Comuna,
+        "Formularios aprobados": fila["Formularios aprobados"],
+        Porcentaje: fila["Porcentaje del total"],
+      }));
+
+      const datosGraficoSexoGenero = filasSexoGenero.map((fila) => ({
+        "Sexo/Género": fila["Sexo/Género"],
+        "Formularios aprobados": fila["Formularios aprobados"],
+        Porcentaje: fila["Porcentaje del total"],
+      }));
+
+      const filasResumen = [
+        {
+          Indicador: "Criterio usado",
+          Valor: "Solo formularios con estado APROBADO",
+        },
+        {
+          Indicador: "Total formularios registrados",
+          Valor: formularios.length,
+        },
+        {
+          Indicador: "Formularios aprobados usados en estadística",
+          Valor: totalAprobados,
+        },
+        {
+          Indicador: "Comunas con participación",
+          Valor: filasComunas.length,
+        },
+        {
+          Indicador: "Categorías de sexo/género",
+          Valor: filasSexoGenero.length,
+        },
+        {
+          Indicador: "Fecha de exportación",
+          Valor: new Intl.DateTimeFormat("es-CL", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }).format(new Date()),
+        },
+      ];
+
+      const hojaResumen = XLSX.utils.json_to_sheet(filasResumen);
+      const hojaComunas = XLSX.utils.json_to_sheet(filasComunas);
+      const hojaSexoGenero = XLSX.utils.json_to_sheet(filasSexoGenero);
+      const hojaGraficoComuna = XLSX.utils.json_to_sheet(datosGraficoComuna);
+      const hojaGraficoSexoGenero = XLSX.utils.json_to_sheet(datosGraficoSexoGenero);
+      const hojaDetalle = XLSX.utils.json_to_sheet(detalleFormularios);
+
+      hojaResumen["!cols"] = [
+        { wch: 48 },
+        { wch: 34 },
+      ];
+
+      hojaComunas["!cols"] = [
+        { wch: 10 },
+        { wch: 28 },
+        { wch: 24 },
+        { wch: 22 },
+      ];
+
+      hojaSexoGenero["!cols"] = [
+        { wch: 10 },
+        { wch: 24 },
+        { wch: 24 },
+        { wch: 22 },
+      ];
+
+      hojaGraficoComuna["!cols"] = [
+        { wch: 28 },
+        { wch: 24 },
+        { wch: 16 },
+      ];
+
+      hojaGraficoSexoGenero["!cols"] = [
+        { wch: 24 },
+        { wch: 24 },
+        { wch: 16 },
+      ];
+
+      hojaDetalle["!cols"] = [
+        { wch: 8 },
+        { wch: 24 },
+        { wch: 28 },
+        { wch: 18 },
+        { wch: 36 },
+        { wch: 24 },
+        { wch: 16 },
+        { wch: 18 },
+        { wch: 18 },
+      ];
+
+      const aplicarFormatoPorcentaje = (
+        hoja: XLSX.WorkSheet,
+        columna: string,
+        cantidadFilas: number
+      ) => {
+        for (let fila = 2; fila <= cantidadFilas + 1; fila += 1) {
+          const celda = hoja[`${columna}${fila}`];
+
+          if (celda) {
+            celda.t = "n";
+            celda.z = "0.00%";
+          }
+        }
+      };
+
+      aplicarFormatoPorcentaje(hojaComunas, "D", filasComunas.length);
+      aplicarFormatoPorcentaje(hojaSexoGenero, "D", filasSexoGenero.length);
+      aplicarFormatoPorcentaje(hojaGraficoComuna, "C", datosGraficoComuna.length);
+      aplicarFormatoPorcentaje(hojaGraficoSexoGenero, "C", datosGraficoSexoGenero.length);
+
+      hojaResumen["!autofilter"] = { ref: `A1:B${filasResumen.length + 1}` };
+      hojaComunas["!autofilter"] = { ref: `A1:D${filasComunas.length + 1}` };
+      hojaSexoGenero["!autofilter"] = { ref: `A1:D${filasSexoGenero.length + 1}` };
+      hojaGraficoComuna["!autofilter"] = { ref: `A1:C${datosGraficoComuna.length + 1}` };
+      hojaGraficoSexoGenero["!autofilter"] = { ref: `A1:C${datosGraficoSexoGenero.length + 1}` };
+      hojaDetalle["!autofilter"] = { ref: `A1:I${detalleFormularios.length + 1}` };
+
+      const libro = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(libro, hojaResumen, "Resumen");
+      XLSX.utils.book_append_sheet(libro, hojaComunas, "Por comuna");
+      XLSX.utils.book_append_sheet(libro, hojaSexoGenero, "Por sexo-genero");
+      XLSX.utils.book_append_sheet(libro, hojaGraficoComuna, "Datos grafico comuna");
+      XLSX.utils.book_append_sheet(libro, hojaGraficoSexoGenero, "Datos grafico sexo");
+      XLSX.utils.book_append_sheet(libro, hojaDetalle, "Formularios aprobados");
+
+      XLSX.writeFile(libro, "estadisticas-formularios-ecoconce.xlsx");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo exportar la estadística de formularios."
+      );
+    }
+  };
+
   const stats = [
     {
       label: "Usuarios activos",
@@ -254,6 +467,16 @@ export function AdminDashboard() {
           >
             <Download className="w-4 h-4 mr-2" />
             Exportar resumen
+          </Button>
+
+          <Button
+            onClick={exportarEstadisticasFormularios}
+            variant="outline"
+            className="border-[#3d5a47] text-[#3d5a47]"
+            disabled={loading}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar estadísticas
           </Button>
         </div>
       </div>
