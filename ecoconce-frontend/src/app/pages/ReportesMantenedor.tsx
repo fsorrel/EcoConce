@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import {
   AlertTriangle,
   CalendarDays,
@@ -112,39 +113,92 @@ export function ReportesMantenedor() {
     };
   }, [reportes]);
 
-  const exportarCsv = () => {
-    const headers = ["ID", "Fecha", "Usuario", "Punto", "Tipo reporte", "Descripcion"];
+  const exportarExcel = () => {
+    const filasReportes = reportesFiltrados.map((reporte) => ({
+        ID: reporte.id,
+        Fecha: formatDate(reporte.fechaReporte),
+        Usuario: reporte.usuario ?? "Sin usuario",
+        Punto: reporte.punto ?? "Sin punto",
+        "Tipo reporte": reporte.tipoReporte ?? "Sin tipo",
+        Descripción: reporte.descripcion ?? "",
+    }));
 
-    const rows = reportesFiltrados.map((reporte) => [
-      reporte.id,
-      formatDate(reporte.fechaReporte),
-      reporte.usuario ?? "Sin usuario",
-      reporte.punto ?? "Sin punto",
-      reporte.tipoReporte ?? "Sin tipo",
-      reporte.descripcion ?? "",
-    ]);
+    const filasResumen = [
+        { Indicador: "Mantenedor", Valor: usuario?.nombreAlias ?? "Sesión no disponible" },
+        { Indicador: "Total reportes filtrados", Valor: reportesFiltrados.length },
+        { Indicador: "Total reportes registrados", Valor: resumen.total },
+        { Indicador: "Puntos reportados", Valor: resumen.puntosReportados },
+        { Indicador: "Tipos de problema", Valor: resumen.tipos },
+    ];
 
-    const csv = [headers, ...rows]
-      .map((row) =>
-        row
-          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-          .join(";")
-      )
-      .join("\n");
+    const conteoPorTipo = reportesFiltrados.reduce<Record<string, number>>((acc, reporte) => {
+        const tipo = reporte.tipoReporte ?? "Sin tipo";
+        acc[tipo] = (acc[tipo] ?? 0) + 1;
+        return acc;
+    }, {});
 
-    const blob = new Blob([`\uFEFF${csv}`], {
-      type: "text/csv;charset=utf-8;",
-    });
+    const filasTipos = Object.entries(conteoPorTipo)
+        .map(([tipo, total]) => ({
+        "Tipo de reporte": tipo,
+        Total: total,
+        "Gráfico visual": "█".repeat(Math.min(total, 30)),
+        }))
+        .sort((a, b) => b.Total - a.Total);
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const conteoPorPunto = reportesFiltrados.reduce<Record<string, number>>((acc, reporte) => {
+        const punto = reporte.punto ?? "Sin punto";
+        acc[punto] = (acc[punto] ?? 0) + 1;
+        return acc;
+    }, {});
 
-    link.href = url;
-    link.download = "reportes-mantenedor-ecoconce.csv";
-    link.click();
+    const filasPuntos = Object.entries(conteoPorPunto)
+        .map(([punto, total]) => ({
+        Punto: punto,
+        Total: total,
+        "Gráfico visual": "█".repeat(Math.min(total, 30)),
+        }))
+        .sort((a, b) => b.Total - a.Total);
 
-    URL.revokeObjectURL(url);
-  };
+    const hojaResumen = XLSX.utils.json_to_sheet(filasResumen);
+    const hojaReportes = XLSX.utils.json_to_sheet(filasReportes);
+    const hojaTipos = XLSX.utils.json_to_sheet(filasTipos);
+    const hojaPuntos = XLSX.utils.json_to_sheet(filasPuntos);
+
+    hojaResumen["!cols"] = [
+        { wch: 32 },
+        { wch: 28 },
+    ];
+
+    hojaReportes["!cols"] = [
+        { wch: 8 },
+        { wch: 24 },
+        { wch: 24 },
+        { wch: 32 },
+        { wch: 24 },
+        { wch: 60 },
+    ];
+
+    hojaTipos["!cols"] = [
+        { wch: 30 },
+        { wch: 12 },
+        { wch: 35 },
+    ];
+
+    hojaPuntos["!cols"] = [
+        { wch: 36 },
+        { wch: 12 },
+        { wch: 35 },
+    ];
+
+    const libro = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(libro, hojaResumen, "Resumen");
+    XLSX.utils.book_append_sheet(libro, hojaReportes, "Reportes");
+    XLSX.utils.book_append_sheet(libro, hojaTipos, "Por tipo");
+    XLSX.utils.book_append_sheet(libro, hojaPuntos, "Por punto");
+
+    XLSX.writeFile(libro, "reportes-mantenedor-ecoconce.xlsx");
+    };
 
   return (
     <div className="p-8 space-y-6 bg-[#f5f7f5] min-h-screen">
@@ -176,12 +230,12 @@ export function ReportesMantenedor() {
           </Button>
 
           <Button
-            onClick={exportarCsv}
+            onClick={exportarExcel}
             className="bg-[#3d5a47] hover:bg-[#2d4437]"
             disabled={loading || reportesFiltrados.length === 0}
           >
             <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
+            Exportar Excel
           </Button>
         </div>
       </div>

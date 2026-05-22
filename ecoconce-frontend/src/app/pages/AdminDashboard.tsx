@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import { Link } from "react-router";
 import {
   AlertTriangle,
@@ -123,36 +124,71 @@ export function AdminDashboard() {
   }, [puntos]);
 
   const exportarResumen = () => {
-    const headers = ["Indicador", "Valor"];
-
-    const rows = [
-      ["Usuarios activos", resumen.usuariosActivos],
-      ["Puntos totales", resumen.puntosTotales],
-      ["Puntos activos", resumen.puntosActivos],
-      ["Puntos sin mantenedor", resumen.puntosSinMantenedor],
-      ["Premios totales", resumen.premiosTotales],
-      ["Premios activos", resumen.premiosActivos],
-      ["Premios agotados", resumen.premiosAgotados],
-      ["Reportes totales", resumen.reportesTotales],
-      ["Reportes sin mantenedor", resumen.reportesSinMantenedor],
+    const filasResumen = [
+      {
+        Indicador: "Usuarios activos",
+        Valor: resumen.usuariosActivos,
+      },
+      {
+        Indicador: "Puntos totales",
+        Valor: resumen.puntosTotales,
+      },
+      {
+        Indicador: "Puntos activos",
+        Valor: resumen.puntosActivos,
+      },
+      {
+        Indicador: "Puntos sin mantenedor",
+        Valor: resumen.puntosSinMantenedor,
+      },
+      {
+        Indicador: "Premios totales",
+        Valor: resumen.premiosTotales,
+      },
+      {
+        Indicador: "Premios activos",
+        Valor: resumen.premiosActivos,
+      },
+      {
+        Indicador: "Premios agotados",
+        Valor: resumen.premiosAgotados,
+      },
+      {
+        Indicador: "Reportes totales",
+        Valor: resumen.reportesTotales,
+      },
+      {
+        Indicador: "Reportes sin mantenedor",
+        Valor: resumen.reportesSinMantenedor,
+      },
     ];
 
-    const csv = [headers, ...rows]
-      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(";"))
-      .join("\n");
+    const filasGrafico = filasResumen.map((fila) => ({
+      Indicador: fila.Indicador,
+      Valor: fila.Valor,
+      Visual: "█".repeat(Math.min(Number(fila.Valor), 30)),
+    }));
 
-    const blob = new Blob([`\uFEFF${csv}`], {
-      type: "text/csv;charset=utf-8;",
-    });
+    const hojaResumen = XLSX.utils.json_to_sheet(filasResumen);
+    const hojaGrafico = XLSX.utils.json_to_sheet(filasGrafico);
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    hojaResumen["!cols"] = [
+      { wch: 32 },
+      { wch: 14 },
+    ];
 
-    link.href = url;
-    link.download = "resumen-admin-ecoconce.csv";
-    link.click();
+    hojaGrafico["!cols"] = [
+      { wch: 32 },
+      { wch: 14 },
+      { wch: 35 },
+    ];
 
-    URL.revokeObjectURL(url);
+    const libro = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(libro, hojaResumen, "Resumen");
+    XLSX.utils.book_append_sheet(libro, hojaGrafico, "Grafico simple");
+
+    XLSX.writeFile(libro, "resumen-admin-ecoconce.xlsx");
   };
 
   const stats = [

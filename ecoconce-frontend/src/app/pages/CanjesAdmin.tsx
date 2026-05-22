@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import {
   AlertTriangle,
   CheckCircle,
@@ -154,54 +155,76 @@ export function CanjesAdmin() {
     }
   };
 
-  const exportarCsvTemporal = () => {
-    const headers = [
-      "ID",
-      "Usuario",
-      "Correo",
-      "Premio",
-      "Puntos gastados",
-      "Codigo",
-      "Estado",
-      "Envio domicilio",
-      "Direccion envio",
-      "Fecha canje",
-      "Fecha entrega",
-      "Observacion",
+  const exportarExcel = () => {
+    const filas = canjesFiltrados.map((canje) => ({
+        ID: canje.id,
+        Usuario: canje.usuario,
+        Correo: canje.correo,
+        Premio: canje.premio,
+        "Puntos gastados": canje.puntosGastados,
+        "Código de canje": canje.codigoCanje,
+        Estado: canje.estado,
+        "Envío a domicilio": canje.envioDomicilio === "S" ? "Sí" : "No",
+        "Dirección de envío": canje.direccionEnvio ?? "",
+        "Fecha de canje": formatDate(canje.fechaCanje),
+        "Fecha de entrega": canje.fechaEntrega ? formatDate(canje.fechaEntrega) : "",
+        Observación: canje.observacion ?? "",
+    }));
+
+    const resumen = [
+        { Indicador: "Total canjes", Valor: canjesFiltrados.length },
+        {
+        Indicador: "Pendientes",
+        Valor: canjesFiltrados.filter((canje) => canje.estado?.toUpperCase() === "PENDIENTE").length,
+        },
+        {
+        Indicador: "Confirmados",
+        Valor: canjesFiltrados.filter((canje) => canje.estado?.toUpperCase() === "CONFIRMADO").length,
+        },
+        {
+        Indicador: "Entregados",
+        Valor: canjesFiltrados.filter((canje) => canje.estado?.toUpperCase() === "ENTREGADO").length,
+        },
+        {
+        Indicador: "Cancelados",
+        Valor: canjesFiltrados.filter((canje) => canje.estado?.toUpperCase() === "CANCELADO").length,
+        },
+        {
+        Indicador: "Con envío a domicilio",
+        Valor: canjesFiltrados.filter((canje) => canje.envioDomicilio?.toUpperCase() === "S").length,
+        },
     ];
 
-    const rows = canjesFiltrados.map((canje) => [
-      canje.id,
-      canje.usuario,
-      canje.correo,
-      canje.premio,
-      canje.puntosGastados,
-      canje.codigoCanje,
-      canje.estado,
-      canje.envioDomicilio === "S" ? "Sí" : "No",
-      canje.direccionEnvio ?? "",
-      formatDate(canje.fechaCanje),
-      canje.fechaEntrega ? formatDate(canje.fechaEntrega) : "",
-      canje.observacion ?? "",
-    ]);
+    const hojaCanjes = XLSX.utils.json_to_sheet(filas);
+    const hojaResumen = XLSX.utils.json_to_sheet(resumen);
 
-    const csv = [headers, ...rows]
-      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(";"))
-      .join("\n");
+    hojaCanjes["!cols"] = [
+        { wch: 8 },
+        { wch: 24 },
+        { wch: 30 },
+        { wch: 32 },
+        { wch: 16 },
+        { wch: 18 },
+        { wch: 14 },
+        { wch: 18 },
+        { wch: 40 },
+        { wch: 24 },
+        { wch: 24 },
+        { wch: 45 },
+    ];
 
-    const blob = new Blob([`\uFEFF${csv}`], {
-      type: "text/csv;charset=utf-8;",
-    });
+    hojaResumen["!cols"] = [
+        { wch: 28 },
+        { wch: 14 },
+    ];
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const libro = XLSX.utils.book_new();
 
-    link.href = url;
-    link.download = "canjes-ecoconce.csv";
-    link.click();
+    XLSX.utils.book_append_sheet(libro, hojaResumen, "Resumen");
+    XLSX.utils.book_append_sheet(libro, hojaCanjes, "Canjes");
 
-    URL.revokeObjectURL(url);
-  };
+    XLSX.writeFile(libro, "canjes-ecoconce.xlsx");
+    };
 
   return (
     <div className="p-8 space-y-6 bg-[#f5f7f5] min-h-screen">
@@ -229,12 +252,12 @@ export function CanjesAdmin() {
           </Button>
 
           <Button
-            onClick={exportarCsvTemporal}
+            onClick={exportarExcel}
             className="bg-[#3d5a47] hover:bg-[#2d4437]"
             disabled={loading || canjesFiltrados.length === 0}
           >
             <Download className="w-4 h-4 mr-2" />
-            Exportar temporal
+            Exportar Excel
           </Button>
         </div>
       </div>
