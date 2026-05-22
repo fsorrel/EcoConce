@@ -179,14 +179,18 @@ export type Premio = {
   costoPuntos: number;
   stock: number;
   activo: string;
+  envioDomicilio: string;
 };
 
 export type CanjeResponse = {
   id: number;
+  premioId: number;
   premio: string;
   puntosGastados: number;
   codigoCanje: string;
   estado: string;
+  envioDomicilio: string;
+  direccionEnvio: string | null;
   puntosRestantes: number;
   fechaCanje: string;
 };
@@ -197,6 +201,29 @@ export type PremioAdminRequest = {
   costoPuntos: number;
   stock: number;
   activo: string;
+  envioDomicilio: string;
+};
+
+export type CanjeAdmin = {
+  id: number;
+  usuarioId: number | null;
+  usuario: string;
+  correo: string;
+  premioId: number | null;
+  premio: string;
+  puntosGastados: number;
+  codigoCanje: string;
+  estado: string;
+  envioDomicilio: string;
+  direccionEnvio: string | null;
+  observacion: string | null;
+  fechaCanje: string;
+  fechaEntrega: string | null;
+};
+
+export type CanjeEstadoRequest = {
+  estado: string;
+  observacion: string;
 };
 
 export type ReportePuntoResponse = {
@@ -407,6 +434,17 @@ export const api = {
   premios: () => apiFetch<Premio[]>("/api/premios"),
 
   premiosAdmin: () => apiFetch<Premio[]>("/api/premios/admin"),
+  
+  canjesAdmin: () => apiFetch<CanjeAdmin[]>("/api/premios/admin/canjes"),
+
+  canjesPendientesAdmin: () =>
+    apiFetch<CanjeAdmin[]>("/api/premios/admin/canjes/pendientes"),
+
+  actualizarEstadoCanjeAdmin: (canjeId: number, body: CanjeEstadoRequest) =>
+    apiFetch<CanjeAdmin>(`/api/premios/admin/canjes/${canjeId}/estado`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
 
   crearPremioAdmin: (body: PremioAdminRequest) =>
     apiFetch<Premio>("/api/premios/admin", {

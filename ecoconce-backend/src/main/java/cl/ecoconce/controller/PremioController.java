@@ -1,5 +1,7 @@
 package cl.ecoconce.controller;
 
+import cl.ecoconce.dto.CanjeAdminDto;
+import cl.ecoconce.dto.CanjeEstadoRequest;
 import cl.ecoconce.dto.CanjeResponse;
 import cl.ecoconce.dto.PremioAdminRequest;
 import cl.ecoconce.dto.PremioDto;
@@ -47,6 +49,27 @@ public class PremioController {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    @GetMapping("/admin/canjes")
+    public List<CanjeAdminDto> listarCanjesAdmin() {
+        return canjeService.listarCanjesAdmin();
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/admin/canjes/pendientes")
+    public List<CanjeAdminDto> listarCanjesPendientesAdmin() {
+        return canjeService.listarCanjesPendientesAdmin();
+    }
+
+    @Transactional
+    @PutMapping("/admin/canjes/{canjeId}/estado")
+    public CanjeAdminDto actualizarEstadoCanjeAdmin(
+            @PathVariable Long canjeId,
+            @RequestBody CanjeEstadoRequest request
+    ) {
+        return canjeService.actualizarEstadoAdmin(canjeId, request);
+    }
+
     @Transactional
     @PostMapping("/admin")
     public PremioDto crearAdmin(@Valid @RequestBody PremioAdminRequest request) {
@@ -55,7 +78,8 @@ public class PremioController {
                 .descripcion(limpiarTexto(request.descripcion()))
                 .costoPuntos(request.costoPuntos())
                 .stock(request.stock())
-                .activo(normalizarActivo(request.activo()))
+                .activo(normalizarSiNo(request.activo(), "S"))
+                .envioDomicilio(normalizarSiNo(request.envioDomicilio(), "N"))
                 .build();
 
         return mapper.toPremio(premioRepository.save(premio));
@@ -70,7 +94,8 @@ public class PremioController {
         premio.setDescripcion(limpiarTexto(request.descripcion()));
         premio.setCostoPuntos(request.costoPuntos());
         premio.setStock(request.stock());
-        premio.setActivo(normalizarActivo(request.activo()));
+        premio.setActivo(normalizarSiNo(request.activo(), "S"));
+        premio.setEnvioDomicilio(normalizarSiNo(request.envioDomicilio(), "N"));
 
         return mapper.toPremio(premioRepository.save(premio));
     }
@@ -107,19 +132,23 @@ public class PremioController {
         return texto == null ? "" : texto.trim();
     }
 
-    private String normalizarActivo(String activo) {
-        if (activo == null || activo.isBlank()) return "S";
+    private String normalizarSiNo(String valor, String defecto) {
+        if (valor == null || valor.isBlank()) return defecto;
 
-        String normalizado = activo.trim().toUpperCase();
+        String normalizado = valor.trim().toUpperCase();
 
         if (!normalizado.equals("S") && !normalizado.equals("N")) {
-            throw new ReglaNegocioException("El estado activo debe ser S o N");
+            throw new ReglaNegocioException("El valor debe ser S o N");
         }
 
         return normalizado;
     }
 
-    public PremioController(PremioRepository premioRepository, MapperService mapper, CanjeService canjeService) {
+    public PremioController(
+            PremioRepository premioRepository,
+            MapperService mapper,
+            CanjeService canjeService
+    ) {
         this.premioRepository = premioRepository;
         this.mapper = mapper;
         this.canjeService = canjeService;

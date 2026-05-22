@@ -94,9 +94,10 @@ public class MapperService {
                 premio.getDescripcion(),
                 premio.getCostoPuntos(),
                 premio.getStock(),
-                premio.getActivo()
+                premio.getActivo(),
+                premio.getEnvioDomicilio() == null ? "N" : premio.getEnvioDomicilio()
         );
-    }
+        }
 
     public FormularioResponse toFormulario(FormularioReciclaje formulario) {
         return new FormularioResponse(

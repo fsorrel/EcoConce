@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { Ban, CheckCircle, Edit, Gift, Loader2, Package, Plus, RefreshCw, Save, Search, X } from "lucide-react";
+import {
+  Ban,
+  CheckCircle,
+  Edit,
+  Gift,
+  Loader2,
+  Package,
+  Plus,
+  RefreshCw,
+  Save,
+  Search,
+  Truck,
+  X,
+} from "lucide-react";
 import { api } from "../lib/api";
 import type { Premio, PremioAdminRequest } from "../lib/api";
 import { Badge } from "../components/ui/badge";
@@ -15,6 +28,7 @@ type PremioFormState = {
   costoPuntos: string;
   stock: string;
   activo: string;
+  envioDomicilio: string;
 };
 
 const initialForm: PremioFormState = {
@@ -23,9 +37,12 @@ const initialForm: PremioFormState = {
   costoPuntos: "",
   stock: "0",
   activo: "S",
+  envioDomicilio: "N",
 };
 
 const normalizarActivo = (activo: string) => (activo?.toUpperCase() === "S" ? "S" : "N");
+
+const normalizarSiNo = (valor: string) => (valor?.toUpperCase() === "S" ? "S" : "N");
 
 const estadoPremio = (premio: Premio) => {
   if (premio.activo?.toUpperCase() !== "S") return "Inactivo";
@@ -67,7 +84,9 @@ export function PremiosAdmin() {
     if (!term) return premios;
 
     return premios.filter((premio) =>
-      `${premio.id} ${premio.nombre} ${premio.descripcion} ${estadoPremio(premio)}`
+      `${premio.id} ${premio.nombre} ${premio.descripcion} ${estadoPremio(premio)} ${
+        premio.envioDomicilio === "S" ? "envio domicilio" : "retiro"
+      }`
         .toLowerCase()
         .includes(term)
     );
@@ -76,9 +95,10 @@ export function PremiosAdmin() {
   const resumen = useMemo(() => {
     const activos = premios.filter((premio) => premio.activo?.toUpperCase() === "S").length;
     const agotados = premios.filter((premio) => premio.stock <= 0).length;
+    const conEnvio = premios.filter((premio) => premio.envioDomicilio?.toUpperCase() === "S").length;
     const stockTotal = premios.reduce((total, premio) => total + Math.max(0, premio.stock), 0);
 
-    return { activos, agotados, stockTotal };
+    return { activos, agotados, conEnvio, stockTotal };
   }, [premios]);
 
   const abrirNuevo = () => {
@@ -97,6 +117,7 @@ export function PremiosAdmin() {
       costoPuntos: String(premio.costoPuntos ?? ""),
       stock: String(premio.stock ?? 0),
       activo: normalizarActivo(premio.activo),
+      envioDomicilio: normalizarSiNo(premio.envioDomicilio),
     });
     setError("");
     setSuccess("");
@@ -134,6 +155,7 @@ export function PremiosAdmin() {
     costoPuntos: Number(formData.costoPuntos),
     stock: Number(formData.stock),
     activo: normalizarActivo(formData.activo),
+    envioDomicilio: normalizarSiNo(formData.envioDomicilio),
   });
 
   const guardarPremio = async () => {
@@ -198,6 +220,7 @@ export function PremiosAdmin() {
         costoPuntos: premio.costoPuntos,
         stock: 0,
         activo: normalizarActivo(premio.activo),
+        envioDomicilio: normalizarSiNo(premio.envioDomicilio),
       });
 
       setSuccess("Premio marcado como agotado correctamente.");
@@ -269,8 +292,8 @@ export function PremiosAdmin() {
 
         <Card>
           <CardHeader>
-            <CardDescription>Agotados</CardDescription>
-            <CardTitle className="text-3xl text-[#1f3b2d]">{resumen.agotados}</CardTitle>
+            <CardDescription>Con envío</CardDescription>
+            <CardTitle className="text-3xl text-[#1f3b2d]">{resumen.conEnvio}</CardTitle>
           </CardHeader>
         </Card>
 
@@ -291,7 +314,7 @@ export function PremiosAdmin() {
               <div>
                 <CardTitle>{editingPremio ? "Editar premio" : "Crear premio"}</CardTitle>
                 <CardDescription>
-                  Los campos se guardan usando la tabla de premios existente. No se modifica la base de datos.
+                  Define datos del premio, stock, estado y si requiere envío a domicilio.
                 </CardDescription>
               </div>
 
@@ -338,7 +361,7 @@ export function PremiosAdmin() {
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="costoPuntos">Costo en puntos</Label>
                 <Input
@@ -362,7 +385,26 @@ export function PremiosAdmin() {
                   onChange={(event) => actualizarCampo("stock", event.target.value)}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="envioDomicilio">Entrega</Label>
+                <select
+                  id="envioDomicilio"
+                  value={formData.envioDomicilio}
+                  onChange={(event) => actualizarCampo("envioDomicilio", event.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="N">Sin envío a domicilio</option>
+                  <option value="S">Con envío a domicilio</option>
+                </select>
+              </div>
             </div>
+
+            {formData.envioDomicilio === "S" && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                Este premio avisará al ciudadano que será enviado a la dirección registrada en su perfil.
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row justify-end gap-2">
               <Button variant="outline" onClick={cancelarFormulario} disabled={saving}>
@@ -418,6 +460,7 @@ export function PremiosAdmin() {
                     <th className="py-3 px-2">Premio</th>
                     <th className="py-3 px-2">Costo</th>
                     <th className="py-3 px-2">Stock</th>
+                    <th className="py-3 px-2">Entrega</th>
                     <th className="py-3 px-2">Estado</th>
                     <th className="py-3 px-2 text-right">Acciones</th>
                   </tr>
@@ -428,6 +471,7 @@ export function PremiosAdmin() {
                     const activo = premio.activo?.toUpperCase() === "S";
                     const agotado = premio.stock <= 0;
                     const estado = estadoPremio(premio);
+                    const conEnvio = premio.envioDomicilio?.toUpperCase() === "S";
 
                     return (
                       <tr key={premio.id} className="border-b last:border-0 align-top">
@@ -444,6 +488,16 @@ export function PremiosAdmin() {
                             <Package className="w-4 h-4 text-gray-500" />
                             {premio.stock.toLocaleString("es-CL")}
                           </span>
+                        </td>
+                        <td className="py-3 px-2">
+                          {conEnvio ? (
+                            <Badge className="bg-blue-100 text-blue-700">
+                              <Truck className="w-3.5 h-3.5 mr-1" />
+                              Domicilio
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-gray-100 text-gray-700">Sin envío</Badge>
+                          )}
                         </td>
                         <td className="py-3 px-2">
                           <Badge

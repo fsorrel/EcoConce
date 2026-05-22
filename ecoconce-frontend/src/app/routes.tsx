@@ -13,13 +13,14 @@ import { ReportarPuntoCiudadano } from "./pages/ReportarPuntoCiudadano";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AdminUsers } from "./pages/AdminUsers";
 import { PremiosAdmin } from "./pages/PremiosAdmin";
+import { CanjesAdmin } from "./pages/CanjesAdmin";
 import { ReportesAdmin } from "./pages/ReportesAdmin";
 import { ReportesMantenedor } from "./pages/ReportesMantenedor";
 import { MaintainerDashboard } from "./pages/MaintainerDashboard";
 import { MaintainerPointDetail } from "./pages/MaintainerPointDetail";
 import { ManagePoints } from "./pages/ManagePoints";
-import { DashboardLayout } from "./components/DashboardLayout";
 import { PuntosMantenedor } from "./pages/PuntosMantenedor";
+import { DashboardLayout } from "./components/DashboardLayout";
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
       { path: "usuarios", Component: AdminUsers },
       { path: "puntos", Component: ManagePoints },
       { path: "premios", Component: PremiosAdmin },
+      { path: "canjes", Component: CanjesAdmin },
       { path: "reportes", Component: ReportesAdmin },
     ],
   },

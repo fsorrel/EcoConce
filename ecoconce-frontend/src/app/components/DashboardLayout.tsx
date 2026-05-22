@@ -5,7 +5,6 @@ import {
   ClipboardList,
   BookOpen,
   User,
-  Settings,
   LogOut,
   BarChart3,
   MapPin,
@@ -14,6 +13,7 @@ import {
   Gift,
   AlertTriangle,
   FileWarning,
+  TicketCheck,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -67,9 +67,7 @@ const navSections: Record<Role, NavSection[]> = {
   admin: [
     {
       title: "General",
-      items: [
-        { icon: BarChart3, label: "Resumen", path: "/admin" },
-      ],
+      items: [{ icon: BarChart3, label: "Resumen", path: "/admin" }],
     },
     {
       title: "Gestión",
@@ -77,39 +75,30 @@ const navSections: Record<Role, NavSection[]> = {
         { icon: Users, label: "Usuarios activos", path: "/admin/usuarios" },
         { icon: MapPin, label: "Puntos de Reciclaje", path: "/admin/puntos" },
         { icon: Gift, label: "Premios", path: "/admin/premios" },
+        { icon: TicketCheck, label: "Canjes", path: "/admin/canjes" },
       ],
     },
     {
       title: "Seguimiento",
-      items: [
-        { icon: AlertTriangle, label: "Reportes", path: "/admin/reportes" },
-      ],
+      items: [{ icon: AlertTriangle, label: "Reportes", path: "/admin/reportes" }],
     },
     {
       title: "Contenido",
-      items: [
-        { icon: BookOpen, label: "Contenido", path: "/admin" },
-      ],
+      items: [{ icon: BookOpen, label: "Contenido", path: "/admin" }],
     },
   ],
-      mantenedor: [
+  mantenedor: [
     {
       title: "General",
-      items: [
-        { icon: Home, label: "Resumen", path: "/mantenedor" },
-      ],
+      items: [{ icon: Home, label: "Resumen", path: "/mantenedor" }],
     },
     {
       title: "Gestión",
-      items: [
-        { icon: MapPin, label: "Mis puntos", path: "/mantenedor/puntos" },
-      ],
+      items: [{ icon: MapPin, label: "Mis puntos", path: "/mantenedor/puntos" }],
     },
     {
       title: "Seguimiento",
-      items: [
-        { icon: AlertTriangle, label: "Reportes", path: "/mantenedor/reportes" },
-      ],
+      items: [{ icon: AlertTriangle, label: "Reportes", path: "/mantenedor/reportes" }],
     },
   ],
 };

@@ -2,8 +2,11 @@ package cl.ecoconce.dto;
 
 import java.time.LocalDateTime;
 
-public record CanjeResponse(
+public record CanjeAdminDto(
         Long id,
+        Long usuarioId,
+        String usuario,
+        String correo,
         Long premioId,
         String premio,
         Integer puntosGastados,
@@ -11,6 +14,7 @@ public record CanjeResponse(
         String estado,
         String envioDomicilio,
         String direccionEnvio,
-        Integer puntosRestantes,
-        LocalDateTime fechaCanje
+        String observacion,
+        LocalDateTime fechaCanje,
+        LocalDateTime fechaEntrega
 ) {}

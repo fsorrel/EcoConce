@@ -21,5 +21,7 @@ public record PremioAdminRequest(
         @Min(value = 0, message = "El stock no puede ser negativo")
         Integer stock,
 
-        String activo
+        String activo,
+
+        String envioDomicilio
 ) {}

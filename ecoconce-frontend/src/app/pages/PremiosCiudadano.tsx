@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { Gift, Loader2, Search, Star, Ticket, Trophy } from "lucide-react";
+import {
+  AlertTriangle,
+  Gift,
+  Loader2,
+  MapPin,
+  Search,
+  Star,
+  Ticket,
+  Trophy,
+  Truck,
+} from "lucide-react";
+import { Link } from "react-router";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -18,6 +29,8 @@ const formatDate = (value: string) => {
     timeStyle: "short",
   }).format(date);
 };
+
+const requiereEnvio = (premio: Premio) => premio.envioDomicilio?.toUpperCase() === "S";
 
 export function PremiosCiudadano() {
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(() => getCurrentUser());
@@ -58,7 +71,11 @@ export function PremiosCiudadano() {
     if (!term) return premios;
 
     return premios.filter((premio) =>
-      `${premio.nombre} ${premio.descripcion}`.toLowerCase().includes(term)
+      `${premio.nombre} ${premio.descripcion} ${
+        requiereEnvio(premio) ? "envio domicilio casa" : "retiro sin envio"
+      }`
+        .toLowerCase()
+        .includes(term)
     );
   }, [premios, search]);
 
@@ -67,6 +84,11 @@ export function PremiosCiudadano() {
 
     if (!currentUser) {
       setError("Debes iniciar sesión para canjear premios.");
+      return;
+    }
+
+    if (requiereEnvio(premio) && !currentUser.direccion?.trim()) {
+      setError("Este premio requiere envío a domicilio. Completa tu dirección en el perfil antes de canjearlo.");
       return;
     }
 
@@ -92,6 +114,7 @@ export function PremiosCiudadano() {
   };
 
   const puntosUsuario = usuario?.puntos ?? 0;
+  const direccionUsuario = usuario?.direccion?.trim() ?? "";
   const premiosDisponibles = premios.filter((premio) => premio.stock > 0).length;
 
   return (
@@ -138,7 +161,7 @@ export function PremiosCiudadano() {
       {success && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-green-700">
                   Canje generado correctamente
@@ -156,6 +179,24 @@ export function PremiosCiudadano() {
                 <p className="text-xs text-green-700 mt-1">
                   Fecha: {formatDate(success.fechaCanje)}
                 </p>
+
+                {success.envioDomicilio === "S" && (
+                  <div className="mt-4 rounded-lg border border-green-300 bg-white/70 p-3 text-sm text-green-900">
+                    <div className="flex items-start gap-2">
+                      <Truck className="w-5 h-5 mt-0.5 text-green-700" />
+
+                      <div>
+                        <p className="font-medium">Este premio tiene envío a domicilio.</p>
+                        <p className="mt-1">
+                          Será enviado a la dirección registrada en tu perfil:
+                        </p>
+                        <p className="font-semibold mt-1">
+                          {success.direccionEnvio ?? "Dirección no disponible"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Badge className="bg-green-700 text-white text-sm px-4 py-2">
@@ -205,7 +246,13 @@ export function PremiosCiudadano() {
           {premiosFiltrados.map((premio) => {
             const sinStock = premio.stock <= 0;
             const puntosInsuficientes = puntosUsuario < premio.costoPuntos;
-            const disabled = sinStock || puntosInsuficientes || canjeandoId === premio.id;
+            const conEnvio = requiereEnvio(premio);
+            const faltaDireccion = conEnvio && !direccionUsuario;
+            const disabled =
+              sinStock ||
+              puntosInsuficientes ||
+              faltaDireccion ||
+              canjeandoId === premio.id;
 
             return (
               <Card
@@ -218,15 +265,24 @@ export function PremiosCiudadano() {
                       <Gift className="w-6 h-6" />
                     </div>
 
-                    <Badge
-                      className={
-                        sinStock
-                          ? "bg-gray-200 text-gray-700"
-                          : "bg-[#3d5a47] text-white"
-                      }
-                    >
-                      {sinStock ? "Agotado" : `${premio.stock} disponibles`}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge
+                        className={
+                          sinStock
+                            ? "bg-gray-200 text-gray-700"
+                            : "bg-[#3d5a47] text-white"
+                        }
+                      >
+                        {sinStock ? "Agotado" : `${premio.stock} disponibles`}
+                      </Badge>
+
+                      {conEnvio && (
+                        <Badge className="bg-blue-100 text-blue-700">
+                          <Truck className="w-3.5 h-3.5 mr-1" />
+                          Envío
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   <CardTitle className="text-[#2d4437] text-xl mt-4">
@@ -252,6 +308,41 @@ export function PremiosCiudadano() {
                     </span>
                   </div>
 
+                  {conEnvio && direccionUsuario && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 mt-0.5" />
+                        <div>
+                          <p className="font-medium">Este premio será enviado a tu casa.</p>
+                          <p className="mt-1">
+                            Dirección registrada:{" "}
+                            <span className="font-semibold">{direccionUsuario}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {conEnvio && !direccionUsuario && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 mt-0.5" />
+                        <div>
+                          <p className="font-medium">Este premio requiere envío a domicilio.</p>
+                          <p className="mt-1">
+                            Completa tu dirección en el perfil antes de canjearlo.
+                          </p>
+                          <Link
+                            to="/ciudadano/perfil"
+                            className="inline-block mt-2 font-medium text-amber-900 underline"
+                          >
+                            Ir a mi perfil
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {puntosInsuficientes && !sinStock && (
                     <p className="text-xs text-red-600">
                       Te faltan{" "}
@@ -275,7 +366,9 @@ export function PremiosCiudadano() {
                       ? "Sin stock"
                       : puntosInsuficientes
                         ? "Puntos insuficientes"
-                        : "Canjear premio"}
+                        : faltaDireccion
+                          ? "Completa tu dirección"
+                          : "Canjear premio"}
                   </Button>
                 </CardContent>
               </Card>

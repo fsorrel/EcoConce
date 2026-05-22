@@ -10,4 +10,10 @@ public interface HistorialPremioCanjeadoRepository extends JpaRepository<Histori
     @Override
     @EntityGraph(attributePaths = {"usuario", "premio"})
     List<HistorialPremioCanjeado> findAll();
+
+    @EntityGraph(attributePaths = {"usuario", "premio"})
+    List<HistorialPremioCanjeado> findAllByOrderByFechaCanjeDesc();
+
+    @EntityGraph(attributePaths = {"usuario", "premio"})
+    List<HistorialPremioCanjeado> findByEstadoOrderByFechaCanjeDesc(String estado);
 }
