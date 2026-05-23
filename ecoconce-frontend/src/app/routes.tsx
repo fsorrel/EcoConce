@@ -1,4 +1,4 @@
-//routes.tsx
+// routes.tsx
 import { createBrowserRouter } from "react-router";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
@@ -8,9 +8,18 @@ import { RecyclingMap } from "./pages/RecyclingMap";
 import { FormulariosReciclaje } from "./pages/FormulariosReciclaje";
 import { Guides } from "./pages/Guides";
 import { CitizenProfile } from "./pages/CitizenProfile";
+import { PremiosCiudadano } from "./pages/PremiosCiudadano";
+import { ReportarPuntoCiudadano } from "./pages/ReportarPuntoCiudadano";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { AdminUsers } from "./pages/AdminUsers";
+import { PremiosAdmin } from "./pages/PremiosAdmin";
+import { CanjesAdmin } from "./pages/CanjesAdmin";
+import { ReportesAdmin } from "./pages/ReportesAdmin";
+import { ReportesMantenedor } from "./pages/ReportesMantenedor";
 import { MaintainerDashboard } from "./pages/MaintainerDashboard";
+import { MaintainerPointDetail } from "./pages/MaintainerPointDetail";
 import { ManagePoints } from "./pages/ManagePoints";
+import { PuntosMantenedor } from "./pages/PuntosMantenedor";
 import { DashboardLayout } from "./components/DashboardLayout";
 
 export const router = createBrowserRouter([
@@ -34,6 +43,8 @@ export const router = createBrowserRouter([
       { path: "mapa", Component: RecyclingMap },
       { path: "formularios", Component: FormulariosReciclaje },
       { path: "guias", Component: Guides },
+      { path: "premios", Component: PremiosCiudadano },
+      { path: "reportar", Component: ReportarPuntoCiudadano },
       { path: "perfil", Component: CitizenProfile },
     ],
   },
@@ -42,7 +53,11 @@ export const router = createBrowserRouter([
     Component: DashboardLayout,
     children: [
       { index: true, Component: AdminDashboard },
+      { path: "usuarios", Component: AdminUsers },
       { path: "puntos", Component: ManagePoints },
+      { path: "premios", Component: PremiosAdmin },
+      { path: "canjes", Component: CanjesAdmin },
+      { path: "reportes", Component: ReportesAdmin },
     ],
   },
   {
@@ -50,6 +65,9 @@ export const router = createBrowserRouter([
     Component: DashboardLayout,
     children: [
       { index: true, Component: MaintainerDashboard },
+      { path: "puntos", Component: PuntosMantenedor },
+      { path: "puntos/:id", Component: MaintainerPointDetail },
+      { path: "reportes", Component: ReportesMantenedor },
     ],
   },
 ]);

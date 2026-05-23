@@ -55,6 +55,36 @@ export type UsuarioSesion = {
   fechaUltimoAcceso: string;
 };
 
+export type UsuarioAdmin = {
+  id: number;
+  rut: string;
+  nombreAlias: string;
+  correo: string;
+  sexoGenero: string;
+  fechaNacimiento: string | null;
+  telefono: string | null;
+  comunaId: number | null;
+  comuna: string | null;
+  direccion: string | null;
+  puntos: number;
+  rolId: number | null;
+  rol: string | null;
+  activo: string;
+  fechaRegistro: string | null;
+  fechaUltimoAcceso: string | null;
+  protegido: boolean;
+};
+
+export type UsuarioAdminUpdateRequest = {
+  nombreAlias: string;
+  correo: string;
+  telefono: string;
+  comunaId: number | null;
+  direccion: string;
+  rolId: number;
+  activo: string;
+};
+
 export type ResumenReciclaje = {
   materialesReciclados: number;
   puntosGanados: number;
@@ -70,17 +100,61 @@ export type Medalla = {
   icono: string;
 };
 
+export type PuntoMaterialDetalle = {
+  materialId: number;
+  nombre: string;
+  capacidadCompactado: number;
+  actualCompactado: number;
+  lleno: boolean;
+  disponible: boolean;
+};
+
 export type PuntoReciclaje = {
   id: number;
   nombre: string;
   descripcion: string;
+  comunaId: number | null;
   comuna: string;
   direccion: string;
   latitud: number;
   longitud: number;
   radioValidacionM: number;
+  estadoId: number | null;
   estado: string;
+  mantenedorId: number | null;
+  mantenedor: string | null;
   materiales: string[];
+  materialesDetalle: PuntoMaterialDetalle[];
+};
+
+export type PuntoMaterialRequest = {
+  materialId: number;
+  capacidadCompactado: number;
+  actualCompactado: number;
+};
+
+export type PuntoMaterialUpdateRequest = {
+  materialId: number;
+  capacidadCompactado: number;
+  actualCompactado: number;
+};
+
+export type PuntoReciclajeRequest = {
+  nombre: string;
+  descripcion: string;
+  comunaId: number;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+  radioValidacionM: number;
+  estadoId: number;
+  mantenedorId: number | null;
+  materiales: PuntoMaterialRequest[];
+};
+
+export type PuntoEstadoRequest = {
+  estadoId: number;
+  descripcion: string;
 };
 
 export type Material = {
@@ -105,6 +179,77 @@ export type Premio = {
   costoPuntos: number;
   stock: number;
   activo: string;
+  envioDomicilio: string;
+};
+
+export type CanjeResponse = {
+  id: number;
+  premioId: number;
+  premio: string;
+  puntosGastados: number;
+  codigoCanje: string;
+  estado: string;
+  envioDomicilio: string;
+  direccionEnvio: string | null;
+  puntosRestantes: number;
+  fechaCanje: string;
+};
+
+export type PremioAdminRequest = {
+  nombre: string;
+  descripcion: string;
+  costoPuntos: number;
+  stock: number;
+  activo: string;
+  envioDomicilio: string;
+};
+
+export type CanjeAdmin = {
+  id: number;
+  usuarioId: number | null;
+  usuario: string;
+  correo: string;
+  premioId: number | null;
+  premio: string;
+  puntosGastados: number;
+  codigoCanje: string;
+  estado: string;
+  envioDomicilio: string;
+  direccionEnvio: string | null;
+  observacion: string | null;
+  fechaCanje: string;
+  fechaEntrega: string | null;
+};
+
+export type CanjeEstadoRequest = {
+  estado: string;
+  observacion: string;
+};
+
+export type ReportePuntoResponse = {
+  id: number;
+  usuarioId: number | null;
+  usuario: string | null;
+  puntoId: number | null;
+  punto: string | null;
+  mantenedorId: number | null;
+  mantenedor: string | null;
+  tipoReporteId: number | null;
+  tipoReporte: string | null;
+  descripcion: string;
+  fechaReporte: string;
+};
+
+export type TipoReporte = {
+  id: number;
+  nombre: string;
+};
+
+export type ReportePuntoRequest = {
+  usuarioId: number;
+  puntoId: number;
+  tipoReporteId: number;
+  descripcion: string;
 };
 
 export type Dashboard = {
@@ -119,8 +264,18 @@ export type Dashboard = {
 
 export type BdRow = Record<string, string | number | boolean | null>;
 
+export type RegionRow = {
+  id: number;
+  nombre: string;
+};
+
+export type ComunaRow = {
+  id: number;
+  nombre: string;
+  region_id: number;
+};
+
 export type FormularioRequest = {
-  usuarioId: number;
   puntoId: number;
   distanciaMetros: number;
   observacion: string;
@@ -224,22 +379,155 @@ export function getRolePath(usuario: Pick<UsuarioSesion, "rolId" | "rol" | "corr
 
 export const api = {
   dashboard: (usuarioId = 1) => apiFetch<Dashboard>(`/api/dashboard/${usuarioId}`),
+
   puntos: () => apiFetch<PuntoReciclaje[]>("/api/puntos"),
+
+  puntosMantenedor: (mantenedorId: number) =>
+    apiFetch<PuntoReciclaje[]>(`/api/puntos/mantenedor/${mantenedorId}`),
+
+  crearPuntoAdmin: (body: PuntoReciclajeRequest) =>
+    apiFetch<PuntoReciclaje>("/api/puntos/admin", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  actualizarPuntoAdmin: (id: number, body: PuntoReciclajeRequest) =>
+    apiFetch<PuntoReciclaje>(`/api/puntos/admin/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  desactivarPuntoAdmin: (id: number) =>
+    apiFetch<PuntoReciclaje>(`/api/puntos/admin/${id}/desactivar`, {
+      method: "PUT",
+    }),
+
+  activarPuntoAdmin: (id: number) =>
+    apiFetch<PuntoReciclaje>(`/api/puntos/admin/${id}/activar`, {
+      method: "PUT",
+    }),
+
+  actualizarEstadoPuntoMantenedor: (
+    mantenedorId: number,
+    puntoId: number,
+    body: PuntoEstadoRequest
+  ) =>
+    apiFetch<PuntoReciclaje>(`/api/puntos/mantenedor/${mantenedorId}/${puntoId}/estado`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  actualizarMaterialesPuntoMantenedor: (
+    mantenedorId: number,
+    puntoId: number,
+    body: PuntoMaterialUpdateRequest[]
+  ) =>
+    apiFetch<PuntoReciclaje>(`/api/puntos/mantenedor/${mantenedorId}/${puntoId}/materiales`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
   materiales: () => apiFetch<Material[]>("/api/materiales"),
+
   guias: () => apiFetch<Guia[]>("/api/guias"),
+
+  premios: () => apiFetch<Premio[]>("/api/premios"),
+
+  premiosAdmin: () => apiFetch<Premio[]>("/api/premios/admin"),
+  
+  canjesAdmin: () => apiFetch<CanjeAdmin[]>("/api/premios/admin/canjes"),
+
+  canjesPendientesAdmin: () =>
+    apiFetch<CanjeAdmin[]>("/api/premios/admin/canjes/pendientes"),
+
+  actualizarEstadoCanjeAdmin: (canjeId: number, body: CanjeEstadoRequest) =>
+    apiFetch<CanjeAdmin>(`/api/premios/admin/canjes/${canjeId}/estado`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  crearPremioAdmin: (body: PremioAdminRequest) =>
+    apiFetch<Premio>("/api/premios/admin", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  actualizarPremioAdmin: (id: number, body: PremioAdminRequest) =>
+    apiFetch<Premio>(`/api/premios/admin/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  activarPremioAdmin: (id: number) =>
+    apiFetch<Premio>(`/api/premios/admin/${id}/activar`, {
+      method: "PUT",
+    }),
+
+  desactivarPremioAdmin: (id: number) =>
+    apiFetch<Premio>(`/api/premios/admin/${id}/desactivar`, {
+      method: "PUT",
+    }),
+
+  canjearPremio: (premioId: number, usuarioId: number) =>
+    apiFetch<CanjeResponse>(`/api/premios/${premioId}/canjear?usuarioId=${usuarioId}`, {
+      method: "POST",
+    }),
+
   usuarios: () => apiFetch<BdRow[]>("/api/bd/usuarios"),
-  comunas: () => apiFetch<BdRow[]>("/api/bd/comunas"),
+
+  usuariosActivosAdmin: () => apiFetch<UsuarioAdmin[]>("/api/usuarios/admin/activos"),
+
+  actualizarUsuarioAdmin: (id: number, body: UsuarioAdminUpdateRequest) =>
+    apiFetch<UsuarioAdmin>(`/api/usuarios/admin/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  regiones: () => apiFetch<RegionRow[]>("/api/bd/regiones"),
+
+  comunas: () => apiFetch<ComunaRow[]>("/api/bd/comunas"),
+
+  estadosPunto: () => apiFetch<BdRow[]>("/api/bd/estado-punto"),
+
   formularios: () => apiFetch<BdRow[]>("/api/bd/formularios-reciclaje"),
+
   detalleFormularios: () => apiFetch<BdRow[]>("/api/bd/detalle-formulario-materiales"),
-  crearFormulario: (body: FormularioRequest) =>
-    apiFetch("/api/formularios", { method: "POST", body: JSON.stringify(body) }),
-  aprobarFormulario: (id: number) => apiFetch(`/api/formularios/${id}/aprobar`, { method: "PUT" }),
+
+  reportesAdmin: () => apiFetch<ReportePuntoResponse[]>("/api/reportes/admin"),
+
+  reportesMantenedor: (mantenedorId: number) =>
+    apiFetch<ReportePuntoResponse[]>(`/api/reportes/mantenedor/${mantenedorId}`),
+
+  tiposReporte: () => apiFetch<TipoReporte[]>("/api/reportes/tipos"),
+
+  crearReportePunto: (body: ReportePuntoRequest) =>
+    apiFetch<ReportePuntoResponse>("/api/reportes", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  crearFormulario: (usuarioId: number, body: FormularioRequest) =>
+    apiFetch(`/api/formularios/usuario/${usuarioId}`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  aprobarFormulario: (id: number) =>
+    apiFetch(`/api/formularios/${id}/aprobar`, {
+      method: "PUT",
+    }),
+
   rechazarFormulario: (id: number, observacion: string) =>
     apiFetch(`/api/formularios/${id}/rechazar`, {
       method: "PUT",
       body: JSON.stringify({ observacion }),
     }),
-  registrarUsuario: (body: unknown) => apiFetch<UsuarioResumen>("/api/usuarios", { method: "POST", body: JSON.stringify(body) }),
+
+  registrarUsuario: (body: unknown) =>
+    apiFetch<UsuarioResumen>("/api/usuarios", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export async function findUsuarioByEmail(correo: string) {

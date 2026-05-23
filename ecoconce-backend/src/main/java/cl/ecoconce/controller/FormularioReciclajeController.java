@@ -13,9 +13,9 @@ import java.util.Map;
 public class FormularioReciclajeController {
     private final FormularioReciclajeService formularioService;
 
-    @PostMapping
-    public FormularioResponse crear(@Valid @RequestBody FormularioRequest request) {
-        return formularioService.crear(request);
+    @PostMapping("/usuario/{usuarioId}")
+    public FormularioResponse crear(@PathVariable Long usuarioId, @Valid @RequestBody FormularioRequest request) {
+        return formularioService.crear(usuarioId, request);
     }
 
     @PutMapping("/{id}/aprobar")

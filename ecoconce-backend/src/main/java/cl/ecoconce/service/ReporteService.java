@@ -2,6 +2,7 @@ package cl.ecoconce.service;
 
 import cl.ecoconce.dto.ReporteRequest;
 import cl.ecoconce.dto.ReporteResponse;
+import cl.ecoconce.dto.TipoReporteDto;
 import cl.ecoconce.entity.PuntoReciclaje;
 import cl.ecoconce.entity.ReportePunto;
 import cl.ecoconce.entity.TipoReporte;
@@ -13,6 +14,8 @@ import cl.ecoconce.repository.TipoReporteRepository;
 import cl.ecoconce.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class ReporteService {
@@ -26,8 +29,10 @@ public class ReporteService {
     public ReporteResponse crear(ReporteRequest request) {
         Usuario usuario = usuarioRepository.findById(request.usuarioId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
+
         PuntoReciclaje punto = puntoRepository.findById(request.puntoId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Punto de reciclaje no encontrado"));
+
         TipoReporte tipo = tipoRepository.findById(request.tipoReporteId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Tipo de reporte no encontrado"));
 
@@ -35,14 +40,48 @@ public class ReporteService {
                 .usuario(usuario)
                 .punto(punto)
                 .tipoReporte(tipo)
-                .descripcion(request.descripcion())
+                .descripcion(limpiarTexto(request.descripcion()))
                 .build());
 
         return mapper.toReporte(reporte);
     }
 
+    @Transactional(readOnly = true)
+    public List<ReporteResponse> listarAdmin() {
+        return reporteRepository.findAllByOrderByFechaReporteDesc().stream()
+                .map(mapper::toReporte)
+                .toList();
+    }
 
-    public ReporteService(UsuarioRepository usuarioRepository, PuntoReciclajeRepository puntoRepository, TipoReporteRepository tipoRepository, ReportePuntoRepository reporteRepository, MapperService mapper) {
+    @Transactional(readOnly = true)
+    public List<ReporteResponse> listarMantenedor(Long mantenedorId) {
+        if (!usuarioRepository.existsById(mantenedorId)) {
+            throw new RecursoNoEncontradoException("Mantenedor no encontrado");
+        }
+
+        return reporteRepository.findByPuntoMantenedorIdOrderByFechaReporteDesc(mantenedorId).stream()
+                .map(mapper::toReporte)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TipoReporteDto> listarTipos() {
+        return tipoRepository.findAllByOrderByNombreAsc().stream()
+                .map(mapper::toTipoReporte)
+                .toList();
+    }
+
+    private String limpiarTexto(String texto) {
+        return texto == null ? "" : texto.trim();
+    }
+
+    public ReporteService(
+            UsuarioRepository usuarioRepository,
+            PuntoReciclajeRepository puntoRepository,
+            TipoReporteRepository tipoRepository,
+            ReportePuntoRepository reporteRepository,
+            MapperService mapper
+    ) {
         this.usuarioRepository = usuarioRepository;
         this.puntoRepository = puntoRepository;
         this.tipoRepository = tipoRepository;

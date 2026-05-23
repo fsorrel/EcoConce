@@ -15,4 +15,7 @@ public interface PuntoReciclajeRepository extends JpaRepository<PuntoReciclaje, 
     @Override
     @EntityGraph(attributePaths = {"comuna", "estado", "mantenedor"})
     Optional<PuntoReciclaje> findById(Long id);
+
+    @EntityGraph(attributePaths = {"comuna", "estado", "mantenedor"})
+    List<PuntoReciclaje> findByMantenedorId(Long mantenedorId);
 }

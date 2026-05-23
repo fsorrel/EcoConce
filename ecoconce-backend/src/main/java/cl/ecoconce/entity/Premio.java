@@ -25,71 +25,83 @@ public class Premio {
     @Column(nullable = false, length = 1)
     private String activo;
 
+    @Column(name = "envio_domicilio", nullable = false, length = 1)
+    private String envioDomicilio;
+
     @PrePersist
     void prePersist() {
         if (stock == null) stock = 0;
         if (activo == null) activo = "S";
+        if (envioDomicilio == null) envioDomicilio = "N";
     }
-
 
     public Premio() {
     }
 
-    public Premio(Long id, String nombre, String descripcion, Integer costoPuntos, Integer stock, String activo) {
+    public Premio(Long id, String nombre, String descripcion, Integer costoPuntos, Integer stock, String activo, String envioDomicilio) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.costoPuntos = costoPuntos;
         this.stock = stock;
         this.activo = activo;
+        this.envioDomicilio = envioDomicilio;
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getNombre() {
         return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
     }
 
     public String getDescripcion() {
         return descripcion;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
     public Integer getCostoPuntos() {
         return costoPuntos;
-    }
-
-    public void setCostoPuntos(Integer costoPuntos) {
-        this.costoPuntos = costoPuntos;
     }
 
     public Integer getStock() {
         return stock;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
     public String getActivo() {
         return activo;
     }
 
+    public String getEnvioDomicilio() {
+        return envioDomicilio;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public void setCostoPuntos(Integer costoPuntos) {
+        this.costoPuntos = costoPuntos;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
     public void setActivo(String activo) {
         this.activo = activo;
+    }
+
+    public void setEnvioDomicilio(String envioDomicilio) {
+        this.envioDomicilio = envioDomicilio;
     }
 
     public static PremioBuilder builder() {
@@ -99,10 +111,11 @@ public class Premio {
     public static class PremioBuilder {
         private Long id;
         private String nombre;
-    private String descripcion;
+        private String descripcion;
         private Integer costoPuntos;
         private Integer stock;
         private String activo;
+        private String envioDomicilio;
 
         public PremioBuilder id(Long id) {
             this.id = id;
@@ -134,8 +147,13 @@ public class Premio {
             return this;
         }
 
+        public PremioBuilder envioDomicilio(String envioDomicilio) {
+            this.envioDomicilio = envioDomicilio;
+            return this;
+        }
+
         public Premio build() {
-            return new Premio(id, nombre, descripcion, costoPuntos, stock, activo);
+            return new Premio(id, nombre, descripcion, costoPuntos, stock, activo, envioDomicilio);
         }
     }
 }

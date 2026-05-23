@@ -15,7 +15,7 @@ import {
 } from "../components/ui/table";
 import { api, BdRow, getCurrentUserId, Material, PuntoReciclaje } from "../lib/api";
 import { getUnidadesPermitidasPorMaterial, ordenarMaterialesFormulario, unidadLabel } from "../lib/materialUnits";
-import { ClipboardList, CheckCircle, XCircle, RefreshCw, Plus, Database, Navigation, Loader2, MapPin } from "lucide-react";
+import { ClipboardList, RefreshCw, Plus, Database, Navigation, Loader2, MapPin } from "lucide-react";
 
 type DetalleFormulario = BdRow & {
   formulario_id?: number;
@@ -47,6 +47,7 @@ const formatValue = (value: unknown) => {
 };
 
 const toRad = (value: number) => (value * Math.PI) / 180;
+const RADIO_MAXIMO_FORMULARIO_METROS = 50;
 
 const calcularDistanciaMetros = (
   origenLat: number,
@@ -86,12 +87,11 @@ export function FormulariosReciclaje() {
   const [gpsMessage, setGpsMessage] = useState("");
 
   const [formData, setFormData] = useState({
-    usuarioId: getCurrentUserId(),
     puntoId: 1,
     materialId: 1,
-    cantidadDeclarada: 1,
+    cantidadDeclarada: "1",
     unidadDeclarada: "UNIDAD",
-    distanciaMetros: 25,
+    distanciaMetros: 0,
     observacion: "",
     observacionMaterial: "",
   });
@@ -155,6 +155,14 @@ export function FormulariosReciclaje() {
   const puntoSeleccionado = puntos.find((punto) => punto.id === Number(formData.puntoId));
   const materialSeleccionado = materialesFormulario.find((material) => material.id === Number(formData.materialId));
   const unidadesPermitidas = materialSeleccionado ? getUnidadesPermitidasPorMaterial(materialSeleccionado.nombre) : [];
+
+  const distanciaActual = Number(formData.distanciaMetros);
+  const distanciaCalculada = Number.isFinite(distanciaActual) && distanciaActual > 0;
+  const estaDentroDelRadio = distanciaCalculada && distanciaActual <= RADIO_MAXIMO_FORMULARIO_METROS;
+
+  const cantidadDeclaradaNumero = Number(formData.cantidadDeclarada);
+  const cantidadDeclaradaValida =
+    /^\d+$/.test(String(formData.cantidadDeclarada)) && cantidadDeclaradaNumero >= 1;
 
   const cambiarMaterial = (materialId: number) => {
     const material = materialesFormulario.find((item) => item.id === materialId);
@@ -223,22 +231,39 @@ export function FormulariosReciclaje() {
       if (!unidadesPermitidas.includes(formData.unidadDeclarada)) {
         throw new Error(`La unidad ${formData.unidadDeclarada} no está permitida para ${materialSeleccionado.nombre}.`);
       }
-      await api.crearFormulario({
-        usuarioId: Number(formData.usuarioId),
+
+      const usuarioId = getCurrentUserId();
+
+      if (!usuarioId) {
+        throw new Error("No se encontró usuario activo. Inicia sesión nuevamente.");
+      }
+      if (!distanciaCalculada) {
+        throw new Error("Debes calcular la distancia con GPS antes de enviar el formulario.");
+      }
+
+      if (!estaDentroDelRadio) {
+        throw new Error("Debes estar a 50 metros o menos del punto de reciclaje para ingresar el informe.");
+      }
+      
+      if (!cantidadDeclaradaValida) {
+        throw new Error("La cantidad declarada debe ser un número entero mayor o igual a 1.");
+      }
+
+      await api.crearFormulario(usuarioId, {
         puntoId: Number(formData.puntoId),
         distanciaMetros: Number(formData.distanciaMetros),
         observacion: formData.observacion,
         materiales: [
           {
             materialId: Number(formData.materialId),
-            cantidadDeclarada: Number(formData.cantidadDeclarada),
+            cantidadDeclarada: cantidadDeclaradaNumero,
             unidadDeclarada: formData.unidadDeclarada,
             observacion: formData.observacionMaterial,
           },
         ],
       });
       setSuccess("Formulario registrado correctamente. Queda pendiente de revisión.");
-      setFormData((prev) => ({ ...prev, cantidadDeclarada: 1, observacion: "", observacionMaterial: "" }));
+      setFormData((prev) => ({ ...prev, cantidadDeclarada: "1", observacion: "", observacionMaterial: "" }));
       await cargarDatos();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear el formulario");
@@ -320,25 +345,21 @@ export function FormulariosReciclaje() {
             <form onSubmit={crearFormulario} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Usuario ID</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={formData.usuarioId}
-                    onChange={(e) => setFormData({ ...formData, usuarioId: Number(e.target.value) })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label>Distancia al punto</Label>
+
                   <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.distanciaMetros}
-                      onChange={(e) => setFormData({ ...formData, distanciaMetros: Number(e.target.value) })}
-                      required
-                    />
+                    <div
+                      className={`flex h-10 w-full items-center rounded-md border px-3 text-sm ${
+                        !distanciaCalculada
+                          ? "border-gray-300 bg-gray-50 text-gray-500"
+                          : estaDentroDelRadio
+                            ? "border-green-300 bg-green-50 text-green-700"
+                            : "border-red-300 bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {distanciaCalculada ? `${distanciaActual} metros` : "Pendiente de calcular con GPS"}
+                    </div>
+
                     <Button
                       type="button"
                       variant="outline"
@@ -350,7 +371,20 @@ export function FormulariosReciclaje() {
                       {gpsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500">El botón usa el GPS real del dispositivo para calcular la distancia al punto seleccionado.</p>
+
+                  {!distanciaCalculada ? (
+                    <p className="text-xs text-gray-500">
+                      Debes calcular tu ubicación con GPS antes de enviar el formulario.
+                    </p>
+                  ) : estaDentroDelRadio ? (
+                    <p className="text-xs text-green-700">
+                      Estás dentro del rango permitido. Puedes informar reciclaje.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-red-700">
+                      Estás a {distanciaActual} metros. Debes estar a 50 metros o menos para ingresar el informe.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -359,7 +393,14 @@ export function FormulariosReciclaje() {
                 <select
                   className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
                   value={formData.puntoId}
-                  onChange={(e) => setFormData({ ...formData, puntoId: Number(e.target.value) })}
+                  onChange={(e) => {
+                    setGpsMessage("");
+                    setFormData({
+                      ...formData,
+                      puntoId: Number(e.target.value),
+                      distanciaMetros: 0,
+                    });
+                  }}
                 >
                   {puntos.map((punto) => (
                     <option key={punto.id} value={punto.id}>{punto.nombre}</option>
@@ -383,16 +424,33 @@ export function FormulariosReciclaje() {
                 <div className="space-y-2">
                   <Label>Cantidad declarada</Label>
                   <Input
-                    type="number"
-                    min="0.1"
-                    step="0.1"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={formData.cantidadDeclarada}
-                    onChange={(e) => setFormData({ ...formData, cantidadDeclarada: Number(e.target.value) })}
+                    onKeyDown={(e) => {
+                      if ([".", ",", "e", "E", "-", "+"].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const textoPegado = e.clipboardData.getData("text");
+                      if (!/^\d+$/.test(textoPegado)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+
+                      setFormData({
+                        ...formData,
+                        cantidadDeclarada: value,
+                      });
+                    }}
                     required
                   />
-                </div>
               </div>
-
+            </div>
               <div className="space-y-2">
                 <Label>Unidad declarada</Label>
                 <select
@@ -429,8 +487,20 @@ export function FormulariosReciclaje() {
                 />
               </div>
 
-              <Button disabled={saving || materialesFormulario.length === 0} type="submit" className="w-full bg-[#3d5a47] hover:bg-[#2d4437]">
-                {saving ? "Guardando..." : "Registrar formulario"}
+              <Button
+                disabled={saving || materialesFormulario.length === 0 || !estaDentroDelRadio || !cantidadDeclaradaValida}
+                type="submit"
+                className="w-full bg-[#3d5a47] hover:bg-[#2d4437]"
+              >
+                {saving
+                  ? "Guardando..."
+                  : !cantidadDeclaradaValida
+                    ? "Ingresa una cantidad válida"
+                    : !distanciaCalculada
+                      ? "Calcula distancia con GPS"
+                      : !estaDentroDelRadio
+                        ? "Fuera del rango permitido"
+                        : "Registrar formulario"}
               </Button>
             </form>
           </CardContent>
@@ -482,16 +552,6 @@ export function FormulariosReciclaje() {
                             <Button size="sm" variant="outline" onClick={() => setSelectedFormularioId(id)}>
                               Ver detalle
                             </Button>
-                            {String(formulario.estado).toUpperCase() === "PENDIENTE" && (
-                              <>
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => cambiarEstado(id, "aprobar")}>
-                                  <CheckCircle className="w-4 h-4 mr-1" /> Aprobar
-                                </Button>
-                                <Button size="sm" variant="outline" className="border-red-300 text-red-700" onClick={() => cambiarEstado(id, "rechazar")}>
-                                  <XCircle className="w-4 h-4 mr-1" /> Rechazar
-                                </Button>
-                              </>
-                            )}
                           </div>
                         </TableCell>
                       </TableRow>

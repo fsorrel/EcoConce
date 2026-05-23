@@ -6,5 +6,6 @@ public record PremioDto(
         String descripcion,
         Integer costoPuntos,
         Integer stock,
-        String activo
+        String activo,
+        String envioDomicilio
 ) {}

@@ -15,4 +15,6 @@ public interface ComunaRepository extends JpaRepository<Comuna, Long> {
     @Override
     @EntityGraph(attributePaths = {"region"})
     Optional<Comuna> findById(Long id);
+
+    Optional<Comuna> findByNombreAndRegionId(String nombre, Long regionId);
 }

@@ -8,9 +8,9 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 public record FormularioRequest(
-        @NotNull Long usuarioId,
         @NotNull Long puntoId,
         @NotNull @PositiveOrZero Double distanciaMetros,
         String observacion,
         @NotEmpty List<@Valid FormularioMaterialRequest> materiales
-) {}
+) {
+}

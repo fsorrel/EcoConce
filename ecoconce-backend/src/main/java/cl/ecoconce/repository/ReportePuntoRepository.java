@@ -8,6 +8,12 @@ import java.util.List;
 
 public interface ReportePuntoRepository extends JpaRepository<ReportePunto, Long> {
     @Override
-    @EntityGraph(attributePaths = {"usuario", "punto", "tipoReporte"})
+    @EntityGraph(attributePaths = {"usuario", "punto", "punto.mantenedor", "tipoReporte"})
     List<ReportePunto> findAll();
+
+    @EntityGraph(attributePaths = {"usuario", "punto", "punto.mantenedor", "tipoReporte"})
+    List<ReportePunto> findAllByOrderByFechaReporteDesc();
+
+    @EntityGraph(attributePaths = {"usuario", "punto", "punto.mantenedor", "tipoReporte"})
+    List<ReportePunto> findByPuntoMantenedorIdOrderByFechaReporteDesc(Long mantenedorId);
 }

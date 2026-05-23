@@ -31,9 +31,16 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (usuarioRepository.count() > 0) return;
 
-        Region bioBio = regionRepository.save(Region.builder().nombre("Biobío").build());
-        Comuna concepcion = comunaRepository.save(Comuna.builder().nombre("Concepción").region(bioBio).build());
+        Region bioBio = regionRepository.findByNombre("Biobío")
+                .orElseGet(() -> regionRepository.save(Region.builder()
+                        .nombre("Biobío")
+                        .build()));
 
+        Comuna concepcion = comunaRepository.findByNombreAndRegionId("Concepción", bioBio.getId())
+                .orElseGet(() -> comunaRepository.save(Comuna.builder()
+                        .nombre("Concepción")
+                        .region(bioBio)
+                        .build()));
         Rol usuarioRol = rolRepository.save(Rol.builder().nombre("USUARIO").build());
         Rol adminRol = rolRepository.save(Rol.builder().nombre("ADMIN").build());
         Rol mantenedorRol = rolRepository.save(Rol.builder().nombre("MANTENEDOR").build());
@@ -98,12 +105,12 @@ public class DataSeeder implements CommandLineRunner {
                 .build());
 
         PuntoReciclaje plazaPeru = puntoRepository.save(PuntoReciclaje.builder()
-                .nombre("Ecopunto Plaza Perú")
+                .nombre("Ecopunto Universidad de Concepción")
                 .descripcion("Punto principal para reciclaje domiciliario limpio.")
                 .comuna(concepcion)
-                .direccion("Plaza Perú, Concepción")
-                .latitud(-36.8270000)
-                .longitud(-73.0498000)
+                .direccion("Universidad de Concepción, Concepción")
+                .latitud(-36.828617)
+                .longitud(-73.036050)
                 .radioValidacionM(50)
                 .estado(operativo)
                 .mantenedor(mantenedor)
@@ -114,8 +121,8 @@ public class DataSeeder implements CommandLineRunner {
                 .descripcion("Punto cercano al centro, recomendado para botellas y cartón.")
                 .comuna(concepcion)
                 .direccion("Parque Ecuador, Concepción")
-                .latitud(-36.8322000)
-                .longitud(-73.0491000)
+                .latitud(-36.833247)
+                .longitud(-73.047194)
                 .radioValidacionM(50)
                 .estado(operativo)
                 .mantenedor(mantenedor)
@@ -126,24 +133,60 @@ public class DataSeeder implements CommandLineRunner {
                 .descripcion("Punto con alta demanda durante fines de semana.")
                 .comuna(concepcion)
                 .direccion("Costanera, Concepción")
-                .latitud(-36.8205000)
-                .longitud(-73.0618000)
+                .latitud(-36.831030)
+                .longitud(-73.064286)
                 .radioValidacionM(50)
                 .estado(lleno)
+                .mantenedor(mantenedor)
+                .build());
+
+        PuntoReciclaje duoc = puntoRepository.save(PuntoReciclaje.builder()
+                .nombre("Ecopunto Duoc UC San Andrés")
+                .descripcion("Punto de prueba.")
+                .comuna(concepcion)
+                .direccion("Duoc UC: Sede San Andrés")
+                .latitud(-36.795416)
+                .longitud(-73.062681)
+                .radioValidacionM(100)
+                .estado(operativo)
                 .mantenedor(mantenedor)
                 .build());
 
         guardarMaterialesPunto(plazaPeru, pilas, electronicos, aluminio, petTransparente, petColor, tetra, cartonesCartulinas, papelCafe, papelBlancoTintaNegra);
         guardarMaterialesPunto(parqueEcuador, otrosMetales, aluminio, ppRigido, ps, peBolsaPeRigido, petTransparente, cartonesCartulinas);
         guardarMaterialesPunto(costanera, petColor, petTransparente, tetra, cartonesCartulinas, papelCafe, papelBlancoTintaNegra);
-
+        guardarMaterialesPunto(duoc, pilas, electronicos, aluminio, petTransparente, petColor, tetra, cartonesCartulinas, papelCafe, papelBlancoTintaNegra);
+        
         guiaRepository.save(GuiaReciclaje.builder().titulo("Aprende a separar residuos en casa").descripcion("Guía rápida para preparar tus materiales antes de reciclar.").contenido("Lava los envases, aplasta botellas, separa tapas y separa plásticos, papeles, metales y envases Tetra antes de llevarlos al ecopunto.").material(petTransparente).build());
         guiaRepository.save(GuiaReciclaje.builder().titulo("Cómo declarar materiales correctamente").descripcion("Consejos para usar las unidades permitidas del formulario.").contenido("Elige el material exacto y luego selecciona solo una de las unidades permitidas: unidad, bolsa, caja, saco u otro, según corresponda.").material(cartonesCartulinas).build());
         guiaRepository.save(GuiaReciclaje.builder().titulo("Preparación de PET, papel y cartón").descripcion("Consejos para entregar materiales limpios y compactados.").contenido("Lava envases, aplasta botellas PET, pliega cartones y mantén papel blanco, papel café y cartulinas separados.").material(petColor).build());
 
-        premioRepository.save(Premio.builder().nombre("Bolsa reutilizable EcoConce").descripcion("Bolsa de tela para compras diarias.").costoPuntos(800).stock(20).activo("S").build());
-        premioRepository.save(Premio.builder().nombre("Descuento comercio local").descripcion("Cupón de descuento para comercios asociados.").costoPuntos(1500).stock(12).activo("S").build());
-        premioRepository.save(Premio.builder().nombre("Kit compostaje inicial").descripcion("Guía impresa y contenedor pequeño para compost.").costoPuntos(3000).stock(4).activo("S").build());
+       premioRepository.save(Premio.builder()
+                .nombre("Bolsa reutilizable EcoConce")
+                .descripcion("Bolsa de tela para compras diarias.")
+                .costoPuntos(800)
+                .stock(20)
+                .activo("S")
+                .envioDomicilio("S")
+                .build());
+
+        premioRepository.save(Premio.builder()
+                .nombre("Descuento comercio local")
+                .descripcion("Cupón de descuento para comercios asociados.")
+                .costoPuntos(1500)
+                .stock(12)
+                .activo("S")
+                .envioDomicilio("N")
+                .build());
+
+        premioRepository.save(Premio.builder()
+                .nombre("Kit compostaje inicial")
+                .descripcion("Guía impresa y contenedor pequeño para compost.")
+                .costoPuntos(3000)
+                .stock(4)
+                .activo("S")
+                .envioDomicilio("S")
+                .build());
 
         FormularioReciclaje formulario = formularioRepository.save(FormularioReciclaje.builder()
                 .usuario(jordan)

@@ -3,10 +3,9 @@ package cl.ecoconce.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-public record FormularioMaterialRequest(
+public record PuntoMaterialUpdateRequest(
         @NotNull Long materialId,
-        @NotNull @Min(1) Integer cantidadDeclarada,
-        String unidadDeclarada,
-        String observacion
+        @Min(0) Integer capacidadCompactado,
+        @Min(0) Integer actualCompactado
 ) {
 }
