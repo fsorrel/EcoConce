@@ -1,0 +1,8 @@
+REVISION 1:
+Se revisó el error ETIMEDOUT reportado por npm. El problema venía de package-lock.json, que tenía una URL interna de registry para react-is generada en el entorno de empaquetado.
+
+REVISION 2:
+Se reemplazó esa URL por registry.npmjs.org y se agregó un archivo .npmrc local para forzar que npm use el registry público oficial. No se modificó el backend ni la base de datos.
+
+INSTRUCCIÓN:
+Si ya intentaste instalar antes, borra node_modules y package-lock antiguo antes de ejecutar npm install con esta versión.
