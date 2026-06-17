@@ -118,24 +118,25 @@ public class UsuarioController {
 
         String token = jwtService.generateToken(usuario);
 
-        return ResponseEntity.ok(Map.of(
-            "token", token,
-            "id", usuario.getId(),
-            "rut", usuario.getRut() != null ? usuario.getRut() : "",
-            "nombreAlias", usuario.getNombreAlias() != null ? usuario.getNombreAlias() : "",
-            "correo", usuario.getCorreo(),
-            "sexoGenero", usuario.getSexoGenero() != null ? usuario.getSexoGenero() : "",
-            "fechaNacimiento", usuario.getFechaNacimiento() != null ? usuario.getFechaNacimiento().toString() : "",
-            "telefono", usuario.getTelefono() != null ? usuario.getTelefono() : "",
-            "comunaId", usuario.getComuna() != null ? usuario.getComuna().getId() : 0,
-            "comuna", (usuario.getComuna() != null && usuario.getComuna().getNombre() != null) ? usuario.getComuna().getNombre() : "",
-            "direccion", usuario.getDireccion() != null ? usuario.getDireccion() : "",
-            "puntos", usuario.getPuntos() != null ? usuario.getPuntos() : 0,
-            "rolId", usuario.getRol() != null ? usuario.getRol().getId() : 1,
-            "rol", (usuario.getRol() != null && usuario.getRol().getNombre() != null) ? usuario.getRol().getNombre() : "USUARIO",
-            "activo", usuario.getActivo() != null ? usuario.getActivo() : "S",
-            "fechaRegistro", usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : ""
-        ));
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("token", token);
+        response.put("id", usuario.getId());
+        response.put("rut", usuario.getRut() != null ? usuario.getRut() : "");
+        response.put("nombreAlias", usuario.getNombreAlias() != null ? usuario.getNombreAlias() : "");
+        response.put("correo", usuario.getCorreo());
+        response.put("sexoGenero", usuario.getSexoGenero() != null ? usuario.getSexoGenero() : "");
+        response.put("fechaNacimiento", usuario.getFechaNacimiento() != null ? usuario.getFechaNacimiento().toString() : "");
+        response.put("telefono", usuario.getTelefono() != null ? usuario.getTelefono() : "");
+        response.put("comunaId", usuario.getComuna() != null ? usuario.getComuna().getId() : 0);
+        response.put("comuna", (usuario.getComuna() != null && usuario.getComuna().getNombre() != null) ? usuario.getComuna().getNombre() : "");
+        response.put("direccion", usuario.getDireccion() != null ? usuario.getDireccion() : "");
+        response.put("puntos", usuario.getPuntos() != null ? usuario.getPuntos() : 0);
+        response.put("rolId", usuario.getRol() != null ? usuario.getRol().getId() : 1);
+        response.put("rol", (usuario.getRol() != null && usuario.getRol().getNombre() != null) ? usuario.getRol().getNombre() : "USUARIO");
+        response.put("activo", usuario.getActivo() != null ? usuario.getActivo() : "S");
+        response.put("fechaRegistro", usuario.getFechaRegistro() != null ? usuario.getFechaRegistro().toString() : "");
+
+        return ResponseEntity.ok(response);
     }
 
     @Transactional(readOnly = true)
