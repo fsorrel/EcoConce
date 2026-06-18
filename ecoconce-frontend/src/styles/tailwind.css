@@ -1,0 +1,18 @@
+/* Primero los imports 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Importa tus estilos personalizados después de las directivas 
+@import './theme.css';
+@import './globals.css';*/
+/* 1. PRIMERO todos los imports */
+@import './theme.css';
+@import './globals.css';
+@import 'tw-animate-css'; /* Si lo sigues usando, muévelo aquí arriba */
+
+/* 2. DESPUÉS las directivas de Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
