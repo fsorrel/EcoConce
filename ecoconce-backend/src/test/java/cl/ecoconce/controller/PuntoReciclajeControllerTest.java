@@ -18,6 +18,7 @@ import cl.ecoconce.repository.MaterialRepository;
 import cl.ecoconce.repository.PuntoMaterialRepository;
 import cl.ecoconce.repository.PuntoReciclajeRepository;
 import cl.ecoconce.repository.UsuarioRepository;
+import cl.ecoconce.security.JwtService;
 import cl.ecoconce.service.MapperService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,6 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = PuntoReciclajeController.class, excludeAutoConfiguration = { SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class })
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
+@WithMockUser(roles = "ADMIN")
 public class PuntoReciclajeControllerTest {
 
     @Autowired
@@ -74,6 +77,9 @@ public class PuntoReciclajeControllerTest {
 
     @MockBean
     private UsuarioRepository usuarioRepository;
+
+    @MockBean
+    private JwtService jwtService;
 
     @MockBean
     private MapperService mapperService;

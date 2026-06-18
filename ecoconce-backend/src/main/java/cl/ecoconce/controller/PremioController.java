@@ -12,6 +12,7 @@ import cl.ecoconce.repository.PremioRepository;
 import cl.ecoconce.service.CanjeService;
 import cl.ecoconce.service.MapperService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +41,7 @@ public class PremioController {
                 .toList();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     @GetMapping("/admin")
     public List<PremioDto> listarAdmin() {
@@ -49,18 +51,21 @@ public class PremioController {
                 .toList();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     @GetMapping("/admin/canjes")
     public List<CanjeAdminDto> listarCanjesAdmin() {
         return canjeService.listarCanjesAdmin();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     @GetMapping("/admin/canjes/pendientes")
     public List<CanjeAdminDto> listarCanjesPendientesAdmin() {
         return canjeService.listarCanjesPendientesAdmin();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/canjes/{canjeId}/estado")
     public CanjeAdminDto actualizarEstadoCanjeAdmin(
@@ -70,6 +75,7 @@ public class PremioController {
         return canjeService.actualizarEstadoAdmin(canjeId, request);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PostMapping("/admin")
     public PremioDto crearAdmin(@Valid @RequestBody PremioAdminRequest request) {
@@ -85,6 +91,7 @@ public class PremioController {
         return mapper.toPremio(premioRepository.save(premio));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/{id}")
     public PremioDto actualizarAdmin(@PathVariable Long id, @Valid @RequestBody PremioAdminRequest request) {
@@ -100,6 +107,7 @@ public class PremioController {
         return mapper.toPremio(premioRepository.save(premio));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/{id}/activar")
     public PremioDto activarAdmin(@PathVariable Long id) {
@@ -109,6 +117,7 @@ public class PremioController {
         return mapper.toPremio(premioRepository.save(premio));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/{id}/desactivar")
     public PremioDto desactivarAdmin(@PathVariable Long id) {

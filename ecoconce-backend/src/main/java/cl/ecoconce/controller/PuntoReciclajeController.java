@@ -21,6 +21,7 @@ import cl.ecoconce.repository.PuntoReciclajeRepository;
 import cl.ecoconce.repository.UsuarioRepository;
 import cl.ecoconce.service.MapperService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,6 +68,7 @@ public class PuntoReciclajeController {
                 .toList();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANTENEDOR')")
     @Transactional(readOnly = true)
     @GetMapping("/mantenedor/{mantenedorId}")
     public List<PuntoReciclajeDto> listarPorMantenedor(@PathVariable Long mantenedorId) {
@@ -84,6 +86,7 @@ public class PuntoReciclajeController {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Punto de reciclaje no encontrado"));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PostMapping("/admin")
     public PuntoReciclajeDto crearAdmin(@Valid @RequestBody PuntoReciclajeRequest request) {
@@ -97,6 +100,7 @@ public class PuntoReciclajeController {
         return mapper.toPunto(guardado);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/{id}")
     public PuntoReciclajeDto actualizarAdmin(
@@ -114,6 +118,7 @@ public class PuntoReciclajeController {
         return mapper.toPunto(actualizado);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/{id}/desactivar")
     public PuntoReciclajeDto desactivarAdmin(@PathVariable Long id) {
@@ -133,6 +138,7 @@ public class PuntoReciclajeController {
         return mapper.toPunto(actualizado);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/{id}/activar")
     public PuntoReciclajeDto activarAdmin(@PathVariable Long id) {
@@ -148,6 +154,7 @@ public class PuntoReciclajeController {
         return mapper.toPunto(actualizado);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANTENEDOR')")
     @Transactional
     @PutMapping("/mantenedor/{mantenedorId}/{puntoId}/estado")
     public PuntoReciclajeDto actualizarEstadoMantenedor(
@@ -169,6 +176,7 @@ public class PuntoReciclajeController {
         return mapper.toPunto(actualizado);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANTENEDOR')")
     @Transactional
     @PutMapping("/mantenedor/{mantenedorId}/{puntoId}/materiales")
     public PuntoReciclajeDto actualizarMaterialesMantenedor(

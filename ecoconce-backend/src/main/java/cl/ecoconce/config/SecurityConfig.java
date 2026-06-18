@@ -1,7 +1,6 @@
 package cl.ecoconce.config;
 
 import cl.ecoconce.security.JwtAuthenticationFilter;
-import cl.ecoconce.security.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,11 +21,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final JwtService jwtService;
+    private final JwtAuthenticationFilter jwtFilter;
     private final CorsConfigurationSource corsConfigurationSource;
 
-    public SecurityConfig(JwtService jwtService, CorsConfigurationSource corsConfigurationSource) {
-        this.jwtService = jwtService;
+    public SecurityConfig(JwtAuthenticationFilter jwtFilter, CorsConfigurationSource corsConfigurationSource) {
+        this.jwtFilter = jwtFilter;
         this.corsConfigurationSource = corsConfigurationSource;
     }
 
@@ -69,7 +68,7 @@ public class SecurityConfig {
                 // Todo lo demás requiere token válido
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtService),
+            .addFilterBefore(jwtFilter,
                     UsernamePasswordAuthenticationFilter.class)
             .build();
     }

@@ -18,6 +18,7 @@ import cl.ecoconce.repository.UsuarioRepository;
 import cl.ecoconce.security.JwtService;
 import cl.ecoconce.service.MapperService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -123,6 +124,7 @@ public class UsuarioController {
         return mapper.toUsuarioResumen(usuario);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     @GetMapping("/admin/activos")
     public List<UsuarioAdminDto> listarActivosAdmin() {
@@ -132,6 +134,7 @@ public class UsuarioController {
                 .toList();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @PutMapping("/admin/{id}")
     public UsuarioAdminDto actualizarUsuarioAdmin(
