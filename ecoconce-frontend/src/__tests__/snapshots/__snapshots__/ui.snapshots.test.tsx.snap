@@ -1,0 +1,286 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot de una Card completa estructurada 1`] = `
+<div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border"
+    data-slot="card"
+  >
+    <div
+      class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+      data-slot="card-header"
+    >
+      <h4
+        class="leading-none"
+        data-slot="card-title"
+      >
+        Título Tarjeta
+      </h4>
+      <p
+        class="text-muted-foreground"
+        data-slot="card-description"
+      >
+        Descripción corta de la tarjeta
+      </p>
+    </div>
+    <div
+      class="px-6 [&:last-child]:pb-6"
+      data-slot="card-content"
+    >
+      <p>
+        Este es el contenido de la tarjeta para las pruebas de instantáneas.
+      </p>
+    </div>
+    <div
+      class="flex items-center px-6 pb-6 [.border-t]:pt-6"
+      data-slot="card-footer"
+    >
+      <button
+        class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+        data-slot="button"
+      >
+        Aceptar
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Badge destructive 1`] = `
+<div>
+  <span
+    class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60"
+    data-slot="badge"
+  >
+    Peligro
+  </span>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Badge outline 1`] = `
+<div>
+  <span
+    class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground"
+    data-slot="badge"
+  >
+    Bordeado
+  </span>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Badge predeterminado 1`] = `
+<div>
+  <span
+    class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+    data-slot="badge"
+  >
+    Etiqueta
+  </span>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Badge secondary 1`] = `
+<div>
+  <span
+    class="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90"
+    data-slot="badge"
+  >
+    Info
+  </span>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button de tamaño grande 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-md px-6 has-[>svg]:px-4"
+    data-slot="button"
+  >
+    Grande
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button de tamaño pequeño 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+    data-slot="button"
+  >
+    Pequeño
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button destructive 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 h-9 px-4 py-2 has-[>svg]:px-3"
+    data-slot="button"
+  >
+    Eliminar
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button ghost 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 has-[>svg]:px-3"
+    data-slot="button"
+  >
+    Editar
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button link 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3"
+    data-slot="button"
+  >
+    Ir a inicio
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button outline 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+    data-slot="button"
+  >
+    Cancelar
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button predeterminado 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+    data-slot="button"
+  >
+    Guardar
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Button secondary 1`] = `
+<div>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 has-[>svg]:px-3"
+    data-slot="button"
+  >
+    Ver más
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Input deshabilitado 1`] = `
+<div>
+  <input
+    class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+    data-slot="input"
+    disabled=""
+    placeholder="No editable"
+  />
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Input predeterminado 1`] = `
+<div>
+  <input
+    class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+    data-slot="input"
+    placeholder="Nombre completo"
+  />
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Progress al 50% 1`] = `
+<div>
+  <div
+    aria-valuemax="100"
+    aria-valuemin="0"
+    aria-valuenow="50"
+    aria-valuetext="50%"
+    class="bg-primary/20 relative h-2 w-full overflow-hidden rounded-full"
+    data-max="100"
+    data-slot="progress"
+    data-state="loading"
+    data-value="50"
+    role="progressbar"
+  >
+    <div
+      class="bg-primary h-full w-full flex-1 transition-all"
+      data-max="100"
+      data-slot="progress-indicator"
+      data-state="loading"
+      data-value="50"
+      style="transform: translateX(-50%);"
+    />
+  </div>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Skeleton 1`] = `
+<div>
+  <div
+    class="bg-accent animate-pulse rounded-md w-[100px] h-[20px]"
+    data-slot="skeleton"
+  />
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Switch activado 1`] = `
+<div>
+  <button
+    aria-checked="true"
+    class="peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-switch-background focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+    data-slot="switch"
+    data-state="checked"
+    role="switch"
+    type="button"
+    value="on"
+  >
+    <span
+      class="bg-card dark:data-[state=unchecked]:bg-card-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
+      data-slot="switch-thumb"
+      data-state="checked"
+    />
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Switch desactivado 1`] = `
+<div>
+  <button
+    aria-checked="false"
+    class="peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-switch-background focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+    data-slot="switch"
+    data-state="unchecked"
+    role="switch"
+    type="button"
+    value="on"
+  >
+    <span
+      class="bg-card dark:data-[state=unchecked]:bg-card-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
+      data-slot="switch-thumb"
+      data-state="unchecked"
+    />
+  </button>
+</div>
+`;
+
+exports[`UI Components Snapshot Tests > Debe coincidir con el snapshot del Textarea 1`] = `
+<div>
+  <textarea
+    class="resize-none border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-input-background px-3 py-2 text-base transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+    data-slot="textarea"
+    placeholder="Mensaje..."
+    rows="4"
+  />
+</div>
+`;

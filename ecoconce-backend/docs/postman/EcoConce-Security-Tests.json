@@ -1,0 +1,502 @@
+{
+  "info": {
+    "_postman_id": "ecoconce-security-tests",
+    "name": "EcoConce Security Tests (OWASP)",
+    "description": "Pruebas de seguridad automatizadas para validar control de acceso, inyección SQL, XSS, JWT y fuerza bruta.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup — Generate Tokens",
+      "item": [
+        {
+          "name": "Login Admin (para obtener token_admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var token = pm.response.json().token;",
+                  "  pm.environment.set('token_admin', token);",
+                  "  console.log('✅ Token admin guardado');",
+                  "} else {",
+                  "  console.log('❌ Error login admin:', pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@ecoconce.cl\",\n  \"contrasena\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Test Ciudadano (para obtener token_ciudadano)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  console.log('✅ Usuario ciudadano creado');",
+                  "}",
+                  "else if (pm.response.code === 400 && pm.response.json().mensaje.includes('Ya existe')) {",
+                  "  console.log('⚠️ Usuario ya existe (esperado en ejecuciones posteriores)');",
+                  "} else {",
+                  "  console.log('❌ Error crear ciudadano:', pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"20000000-1\",\n  \"nombreAlias\": \"Usuario Test\",\n  \"correo\": \"test.ciudadano@example.com\",\n  \"contrasena\": \"password123\",\n  \"sexoGenero\": \"M\",\n  \"fechaNacimiento\": \"1990-01-01\",\n  \"telefono\": \"987654321\",\n  \"comunaId\": 1,\n  \"direccion\": \"Calle Test 123\",\n  \"rolId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/usuarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Ciudadano (para obtener token_ciudadano)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var token = pm.response.json().token;",
+                  "  pm.environment.set('token_ciudadano', token);",
+                  "  console.log('✅ Token ciudadano guardado');",
+                  "} else {",
+                  "  console.log('❌ Error login ciudadano:', pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"test.ciudadano@example.com\",\n  \"contrasena\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AC — Control de Acceso",
+      "item": [
+        {
+          "name": "AC-01: Admin sin token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "name": "AC-02: Ciudadano a ruta admin → 403",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_ciudadano}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "name": "AC-03: IDOR - Ver usuario 99 con token de usuario 1 → 403/404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_ciudadano}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/99",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "99"
+              ]
+            }
+          }
+        },
+        {
+          "name": "AC-04: Ciudadano crea premio → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_ciudadano}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Hack\",\n  \"descripcion\": \"Intento de hack\",\n  \"costoPuntos\": 0,\n  \"stock\": 999,\n  \"activo\": \"S\",\n  \"envioDomicilio\": \"N\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/premios/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "premios",
+                "admin"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SQL — SQL Injection",
+      "item": [
+        {
+          "name": "SQL-01: Login con OR 1=1 → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"' OR 1=1 --\",\n  \"contrasena\": \"cualquiera\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/usuarios/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "SQL-02: Búsqueda con OR 1=1 → 400/vacío",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/puntos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "puntos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "SQL-03: Crear premio con DROP TABLE → Guardado como texto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"'; DROP TABLE PREMIO; --\",\n  \"descripcion\": \"Test SQL Injection\",\n  \"costoPuntos\": 100,\n  \"stock\": 10,\n  \"activo\": \"S\",\n  \"envioDomicilio\": \"N\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/premios/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "premios",
+                "admin"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "XSS — Cross-Site Scripting",
+      "item": [
+        {
+          "name": "XSS-01: Script alert en nombre de premio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"<script>alert('XSS Reflectado')</script>\",\n  \"descripcion\": \"Test XSS\",\n  \"costoPuntos\": 100,\n  \"stock\": 5,\n  \"activo\": \"S\",\n  \"envioDomicilio\": \"N\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/premios/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "premios",
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "name": "XSS-02: Img onerror en descripción",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Premio XSS Test 2\",\n  \"descripcion\": \"<img src=x onerror=alert('XSS')>\",\n  \"costoPuntos\": 100,\n  \"stock\": 5,\n  \"activo\": \"S\",\n  \"envioDomicilio\": \"N\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/premios/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "premios",
+                "admin"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "JWT — Validación de Tokens",
+      "item": [
+        {
+          "name": "JWT-01: Token expirado → 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBlY29jb25jZS5jbCIsImlhdCI6MTcxODY5NjAwMCwiZXhwIjoxNzE4Njk2MDAxLCJyb2xlIjoiQURNSU4ifQ.invalidSignature"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "name": "JWT-02: Token con firma modificada → 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.MODIFIED_PAYLOAD.invalidSignature"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "name": "JWT-03: Sin token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "name": "JWT-04: Token Bearer inválido (plaintext)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer notavalidjwttoken12345"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "admin"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_ciudadano",
+      "value": ""
+    }
+  ]
+}

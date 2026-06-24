@@ -1,0 +1,31 @@
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# Maven wrapper liviano para EcoConce.
+# Descarga Apache Maven la primera vez (necesita internet) y lo cachea.
+# Uso: ./mvnw verify    |    ./mvnw test    |    ./mvnw -version
+# Requiere: curl o wget, y unzip.
+# ---------------------------------------------------------------------------
+set -e
+MAVEN_VERSION=3.9.9
+WRAPPER_DIR="$HOME/.m2/wrapper-ecoconce"
+MAVEN_HOME="$WRAPPER_DIR/apache-maven-$MAVEN_VERSION"
+DIST_URL="https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$MAVEN_VERSION/apache-maven-$MAVEN_VERSION-bin.zip"
+
+if [ ! -x "$MAVEN_HOME/bin/mvn" ]; then
+  echo ">> Descargando Apache Maven $MAVEN_VERSION (solo la primera vez)..."
+  mkdir -p "$WRAPPER_DIR"
+  ZIP="$WRAPPER_DIR/maven-dist.zip"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$ZIP" "$DIST_URL"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$ZIP" "$DIST_URL"
+  else
+    echo "ERROR: se necesita 'curl' o 'wget' para descargar Maven." >&2
+    exit 1
+  fi
+  unzip -q -o "$ZIP" -d "$WRAPPER_DIR"
+  rm -f "$ZIP"
+  echo ">> Maven $MAVEN_VERSION instalado en $MAVEN_HOME"
+fi
+
+exec "$MAVEN_HOME/bin/mvn" "$@"
