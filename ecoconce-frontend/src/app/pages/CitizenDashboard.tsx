@@ -212,6 +212,28 @@ export function CitizenDashboard() {
         </div>
       </div>
 
+      {!dashboardLoading && (resumen?.puntosGanados ?? 0) === 0 && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6">
+          <h3 className="font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+            🌱 ¡Bienvenido a EcoConce!
+          </h3>
+          <p className="text-sm text-emerald-700 mb-3">
+            Aún no tienes actividad registrada. Para empezar a acumular puntos:
+          </p>
+          <ol className="text-sm text-emerald-700 space-y-2 list-decimal pl-5">
+            <li>
+              Ve al <Link to="/ciudadano/mapa" className="font-semibold text-emerald-800 hover:underline">Mapa</Link> para encontrar un punto de reciclaje cercano
+            </li>
+            <li>
+              Lleva tus materiales al punto y registra tu visita en <Link to="/ciudadano/formularios" className="font-semibold text-emerald-800 hover:underline">Formularios</Link>
+            </li>
+            <li>
+              Acumula puntos y canjéalos por premios en <Link to="/ciudadano/premios" className="font-semibold text-emerald-800 hover:underline">Premios</Link>
+            </li>
+          </ol>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {dashboardLoading ? (
           Array.from({ length: 4 }).map((_, idx) => (

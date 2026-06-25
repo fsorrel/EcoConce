@@ -22,6 +22,8 @@ type RegistroForm = {
   comunaId: number;
   direccion: string;
   aceptaTerminos: boolean;
+  consentimientoGeneral: boolean;
+  consentimientoSexoGenero: boolean;
 };
 
 type CampoRegistro = keyof RegistroForm;
@@ -41,6 +43,8 @@ const initialForm: RegistroForm = {
   comunaId: 0,
   direccion: "",
   aceptaTerminos: false,
+  consentimientoGeneral: false,
+  consentimientoSexoGenero: false,
 };
 
 const limpiarRut = (rut: string) => rut.replace(/[.\-\s]/g, "").toUpperCase();
@@ -186,6 +190,16 @@ const validarCampo = (campo: CampoRegistro, data: RegistroForm): string | undefi
     if (!data.aceptaTerminos) return "Debes aceptar los términos y condiciones.";
   }
 
+  if (campo === "consentimientoGeneral") {
+    if (!data.consentimientoGeneral) return "Debes aceptar la política de privacidad.";
+  }
+
+  if (campo === "consentimientoSexoGenero") {
+    if (data.sexoGenero && !data.consentimientoSexoGenero) {
+      return "Debes autorizar el tratamiento de datos de sexo/género.";
+    }
+  }
+
   return undefined;
 };
 
@@ -202,6 +216,8 @@ const validarFormulario = (data: RegistroForm) => {
     "contrasena",
     "confirmPassword",
     "aceptaTerminos",
+    "consentimientoGeneral",
+    "consentimientoSexoGenero",
   ];
 
   return campos.reduce<ErroresRegistro>((errores, campo) => {
@@ -363,6 +379,8 @@ export function Register() {
         contrasena: true,
         confirmPassword: true,
         aceptaTerminos: true,
+        consentimientoGeneral: true,
+        consentimientoSexoGenero: true,
       });
       setError("Revisa los campos marcados en rojo antes de crear la cuenta.");
       return;
@@ -667,6 +685,93 @@ export function Register() {
                 />
               </div>
 
+              {/* Sección de Protección de Datos */}
+              <div className="border-t-2 border-emerald-200 pt-5 space-y-3">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
+                    🔒 Protección de Datos Personales (Ley 21.719)
+                  </h3>
+
+                  {/* Consentimiento General */}
+                  <div
+                    className={`rounded-lg border p-3 mb-3 ${
+                      debeMostrarError("consentimientoGeneral")
+                        ? "border-red-300 bg-red-50"
+                        : "border-emerald-300 bg-white"
+                    }`}
+                  >
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.consentimientoGeneral}
+                        onBlur={() => marcarTocado("consentimientoGeneral")}
+                        onChange={(e) => actualizarCampo("consentimientoGeneral", e.target.checked)}
+                        className="mt-1 rounded border-gray-300"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Autorizo el tratamiento de mis datos personales (nombre, RUT, correo, teléfono, dirección y
+                        datos de actividad) conforme a la{" "}
+                        <Link
+                          to="/privacidad"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 hover:underline font-medium"
+                        >
+                          Política de Privacidad
+                        </Link>{" "}
+                        *
+                      </span>
+                    </label>
+                    <ErrorCampo
+                      mensaje={
+                        debeMostrarError("consentimientoGeneral")
+                          ? fieldErrors.consentimientoGeneral
+                          : undefined
+                      }
+                    />
+                  </div>
+
+                  {/* Consentimiento para Sexo/Género (condicional) */}
+                  {formData.sexoGenero && (
+                    <div
+                      className={`rounded-lg border p-3 ${
+                        debeMostrarError("consentimientoSexoGenero")
+                          ? "border-red-300 bg-red-50"
+                          : "border-red-300 bg-red-50"
+                      }`}
+                    >
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.consentimientoSexoGenero}
+                          onBlur={() => marcarTocado("consentimientoSexoGenero")}
+                          onChange={(e) => actualizarCampo("consentimientoSexoGenero", e.target.checked)}
+                          className="mt-1 rounded border-gray-300"
+                        />
+                        <span className="text-sm text-red-800">
+                          <strong>⚠️ Dato Sensible:</strong> Autorizo que mi dato de sexo/género se trate como dato de categoría
+                          especial bajo la Ley 21.719. Este dato se usará solo para estadísticas anonimizadas y nunca se
+                          compartirá a nivel individual. *
+                        </span>
+                      </label>
+                      <ErrorCampo
+                        mensaje={
+                          debeMostrarError("consentimientoSexoGenero")
+                            ? fieldErrors.consentimientoSexoGenero
+                            : undefined
+                        }
+                      />
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-600 flex items-center gap-2 pt-2 border-t border-emerald-200">
+                    <span>✓</span>
+                    Para ejercer tus derechos (acceso, rectificación, cancelación u oposición) escribe a{" "}
+                    <span className="font-mono bg-white px-2 py-1 rounded ml-1">privacidad@ecoconce.cl</span>
+                  </p>
+                </div>
+              </div>
+
               <Button
                 disabled={loading}
                 type="submit"
@@ -678,7 +783,7 @@ export function Register() {
                     Creando cuenta...
                   </>
                 ) : (
-                  "Crear Cuenta"
+                  "Registrarse"
                 )}
               </Button>
             </form>

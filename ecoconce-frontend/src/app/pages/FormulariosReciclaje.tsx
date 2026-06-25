@@ -42,6 +42,8 @@ const estadoClass = (estado: unknown) => {
       return "bg-green-100 text-green-700 border-green-200";
     case "RECHAZADO":
       return "bg-red-100 text-red-700 border-red-200";
+    case "PUNTO_SIN_REVISOR":
+      return "bg-gray-100 text-gray-700 border-gray-200";
     default:
       return "bg-yellow-100 text-yellow-700 border-yellow-200";
   }
@@ -150,6 +152,15 @@ export function FormulariosReciclaje() {
   const totalAprobados = useMemo(
     () => formularios.filter((f) => String(f.estado).toUpperCase() === "APROBADO").length,
     [formularios]
+  );
+
+  // Detectar si existe un formulario PENDIENTE para el punto seleccionado
+  const tienePendienteEnPunto = useMemo(
+    () => formularios.some(
+      (f) => Number(f.punto_id) === Number(formData.puntoId) &&
+             String(f.estado).toUpperCase() === "PENDIENTE"
+    ),
+    [formularios, formData.puntoId]
   );
 
   const detallesSeleccionados = detalles.filter(
@@ -404,6 +415,13 @@ export function FormulariosReciclaje() {
                   ))}
                 </select>
               </div>
+
+              {tienePendienteEnPunto && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  <p className="font-semibold mb-1">⚠️ Formulario pendiente de revisión</p>
+                  <p>Ya tienes un formulario en revisión para este punto. Espera a que sea aprobado antes de enviar otro.</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { CitizenDashboard } from "./pages/CitizenDashboard";
 import { RecyclingMap } from "./pages/RecyclingMap";
 import { FormulariosReciclaje } from "./pages/FormulariosReciclaje";
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
   {
     path: "/registro",
     Component: Register,
+  },
+  {
+    path: "/privacidad",
+    Component: PrivacyPolicy,
   },
   {
     path: "/ciudadano",

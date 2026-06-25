@@ -61,17 +61,35 @@ export function AdminDashboard() {
     setError("");
 
     try {
-      const [usuariosData, puntosData, premiosData, reportesData] = await Promise.all([
-        api.usuariosActivosAdmin(),
-        api.puntos(),
-        api.premiosAdmin(),
-        api.reportesAdmin(),
-      ]);
+      // Usar Promise.allSettled para resilencia: si 1 falla, mostramos lo que sí se cargó
+      const [usuariosResult, puntosResult, premiosResult, reportesResult] =
+        await Promise.allSettled([
+          api.usuariosActivosAdmin(),
+          api.puntos(),
+          api.premiosAdmin(),
+          api.reportesAdmin(),
+        ]);
+
+      // Extraer datos o array vacío si falló
+      const usuariosData = usuariosResult.status === "fulfilled" ? usuariosResult.value : [];
+      const puntosData = puntosResult.status === "fulfilled" ? puntosResult.value : [];
+      const premiosData = premiosResult.status === "fulfilled" ? premiosResult.value : [];
+      const reportesData = reportesResult.status === "fulfilled" ? reportesResult.value : [];
 
       setUsuarios(usuariosData);
       setPuntos(puntosData);
       setPremios(premiosData);
       setReportes(reportesData);
+
+      // Mostrar advertencia si alguno falló
+      const hayErrorParcial = [usuariosResult, puntosResult, premiosResult, reportesResult].some(
+        (r) => r.status === "rejected"
+      );
+      if (hayErrorParcial) {
+        setError(
+          "⚠️ Algunos datos no pudieron cargarse. La información mostrada puede estar incompleta."
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo cargar el panel de administración.");
     } finally {

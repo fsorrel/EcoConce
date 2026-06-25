@@ -1,6 +1,8 @@
 package cl.ecoconce.exception;
 
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<Map<String, Object>> recursoNoEncontrado(RecursoNoEncontradoException ex) {
         return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -68,6 +71,7 @@ public class ApiExceptionHandler {
     // registro (p. ej. dos canjes del mismo premio). Se responde 409 Conflict.
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<Map<String, Object>> conflictoConcurrencia(ObjectOptimisticLockingFailureException ex) {
+        log.warn("Conflicto de concurrencia optimista: {}", ex.getMessage());
         return respuesta(HttpStatus.CONFLICT,
                 "El registro fue modificado por otra operación en paralelo. Vuelve a intentarlo.");
     }
@@ -99,6 +103,8 @@ public class ApiExceptionHandler {
             HttpStatus estado = HttpStatus.valueOf(errorResponse.getStatusCode().value());
             return respuesta(estado, estado.getReasonPhrase());
         }
+        // Log solo para errores no controlados (500)
+        log.error("Error interno no controlado: {}", ex.getMessage(), ex);
         return respuesta(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno: " + ex.getMessage());
     }
 

@@ -23,4 +23,6 @@ public interface FormularioReciclajeRepository extends JpaRepository<FormularioR
 
     @EntityGraph(attributePaths = {"usuario", "punto"})
     List<FormularioReciclaje> findByUsuarioIdOrderByFechaFormularioDesc(Long usuarioId);
+
+    boolean existsByUsuarioIdAndPuntoIdAndEstadoIgnoreCase(Long usuarioId, Long puntoId, String estado);
 }

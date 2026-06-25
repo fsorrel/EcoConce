@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -222,6 +223,36 @@ public class UsuarioController {
 
         Usuario actualizado = usuarioRepository.save(usuario);
         return mapper.toUsuarioAdminDto(actualizado);
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or authentication.principal.username == #id.toString()")
+    @Transactional
+    @DeleteMapping("/{id}/cuenta")
+    public ResponseEntity<Map<String, String>> solicitarBajaCuenta(@PathVariable Long id) {
+        anonimizarCuenta(id);
+        return ResponseEntity.ok(Map.of(
+            "mensaje", "Tu cuenta ha sido anonimizada. Los datos de auditoría se eliminarán en 30 días conforme a la Ley 21.719.",
+            "estado", "cuenta_anonimizada"
+        ));
+    }
+
+    private void anonimizarCuenta(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
+
+        // Anonimizar datos personales identificables
+        String anonimo = "ANONIMO_" + usuarioId;
+        usuario.setNombreAlias(anonimo);
+        usuario.setCorreo(anonimo + "@eliminado.ecoconce.cl");
+        usuario.setRut("00000000-0");
+        usuario.setTelefono(null);
+        usuario.setDireccion(null);
+        usuario.setSexoGenero(null);
+        usuario.setFechaNacimiento(null);
+        usuario.setContrasena("[CUENTA_ELIMINADA]");
+        usuario.setActivo("N");
+
+        usuarioRepository.save(usuario);
     }
 
     private boolean esAdminOriginal(Usuario usuario) {

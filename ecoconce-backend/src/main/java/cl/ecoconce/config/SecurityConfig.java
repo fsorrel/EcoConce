@@ -42,6 +42,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Preflight CORS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Actuator endpoints
+                .requestMatchers("/actuator/health").permitAll()   // estado del sistema: público
+                .requestMatchers("/actuator/**").hasRole("ADMIN")  // métricas: solo admin
                 // Rutas públicas
                 .requestMatchers("/api/usuarios/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()   // registro

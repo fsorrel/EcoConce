@@ -76,7 +76,15 @@ export function Guides() {
           <h2 className="text-xl font-bold text-[#2d4437]">Guías disponibles</h2>
           <p className="text-sm text-gray-600">{filteredGuides.length} artículos</p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredGuides.length === 0 ? (
+          <Card className="border-gray-200">
+            <CardContent className="p-8 text-center">
+              <p className="text-gray-600 mb-2">No hay guías disponibles para este filtro.</p>
+              <p className="text-sm text-gray-500">Intenta cambiar el material o búsqueda.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredGuides.map((guide) => (
             <Card key={guide.id} className="border-[#6fae7f]/20 hover:shadow-lg transition cursor-pointer group">
               <CardContent className="p-6">
@@ -91,6 +99,7 @@ export function Guides() {
             </Card>
           ))}
         </div>
+        )}
       </div>
 
       <Card className="border-[#6fae7f]/20 bg-gradient-to-br from-[#f5f7f5] to-white">

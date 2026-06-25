@@ -4,6 +4,8 @@ import cl.ecoconce.dto.*;
 import cl.ecoconce.entity.Usuario;
 import cl.ecoconce.exception.RecursoNoEncontradoException;
 import cl.ecoconce.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +14,8 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class DashboardService {
+    private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
+    
     private final UsuarioRepository usuarioRepository;
     private final PuntoReciclajeRepository puntoRepository;
     private final GuiaReciclajeRepository guiaRepository;
@@ -23,6 +27,8 @@ public class DashboardService {
     private final MapperService mapper;
 
     public DashboardDto obtenerDashboard(Long usuarioId) {
+        log.debug("Calculando dashboard para usuarioId={}", usuarioId);
+        
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
@@ -31,7 +37,7 @@ public class DashboardService {
         long desafios = formularioRepository.countByUsuarioIdAndEstado(usuarioId, "APROBADO");
         long niveles = calcularNivel(usuario.getPuntos());
 
-        return new DashboardDto(
+        DashboardDto dto = new DashboardDto(
                 mapper.toUsuarioResumen(usuario),
                 new ResumenReciclajeDto(materiales, puntosGanados, desafios, niveles),
                 medallas(usuario.getPuntos()),
@@ -40,6 +46,11 @@ public class DashboardService {
                 materialRepository.findAll().stream().map(mapper::toMaterial).toList(),
                 premioRepository.findByActivo("S").stream().map(mapper::toPremio).toList()
         );
+        
+        log.debug("Dashboard calculado: usuarioId={}, puntos={}, medallas={}",
+                  usuarioId, puntosGanados, dto.medallas().size());
+        
+        return dto;
     }
 
     private long calcularNivel(Integer puntos) {

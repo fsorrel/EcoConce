@@ -289,24 +289,24 @@ export function Landing() {
             <div>
               <h4 className="font-bold mb-4">Plataforma</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><a href="#" className="hover:opacity-100">Mapa de Reciclaje</a></li>
-                <li><a href="#" className="hover:opacity-100">Formularios</a></li>
-                <li><a href="#" className="hover:opacity-100">Guías</a></li>
+                <li><Link to="/login" className="hover:opacity-100">Mapa de Reciclaje</Link></li>
+                <li><Link to="/login" className="hover:opacity-100">Formularios</Link></li>
+                <li><Link to="/login" className="hover:opacity-100">Guías</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-4">Recursos</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><a href="#" className="hover:opacity-100">Blog</a></li>
-                <li><a href="#" className="hover:opacity-100">Ayuda</a></li>
-                <li><a href="#" className="hover:opacity-100">Contacto</a></li>
+                <li><a href="https://ecoconce.cl/blog" target="_blank" rel="noopener noreferrer" className="hover:opacity-100">Blog</a></li>
+                <li><a href="https://ecoconce.cl/ayuda" target="_blank" rel="noopener noreferrer" className="hover:opacity-100">Ayuda</a></li>
+                <li><a href="mailto:contacto@ecoconce.cl" className="hover:opacity-100">Contacto</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><a href="#" className="hover:opacity-100">Privacidad</a></li>
-                <li><a href="#" className="hover:opacity-100">Términos</a></li>
+                <li><Link to="/privacidad" className="hover:opacity-100">Privacidad</Link></li>
+                <li><a href="https://ecoconce.cl/terminos" target="_blank" rel="noopener noreferrer" className="hover:opacity-100">Términos</a></li>
               </ul>
             </div>
           </div>

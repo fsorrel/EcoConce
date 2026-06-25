@@ -181,10 +181,19 @@ export function PuntosMantenedor() {
             Cargando puntos asignados...
           </CardContent>
         </Card>
-      ) : puntosFiltrados.length === 0 ? (
+      ) : puntosFiltrados.length === 0 && search ? (
         <Card>
           <CardContent className="p-10 text-center text-gray-500">
-            No tienes puntos asignados o no coinciden con la búsqueda.
+            No hay puntos que coincidan con tu búsqueda.
+          </CardContent>
+        </Card>
+      ) : puntosFiltrados.length === 0 ? (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-8 text-center">
+            <p className="text-lg font-semibold text-yellow-900 mb-2">Aún no tienes puntos asignados</p>
+            <p className="text-yellow-800 mb-4">
+              El administrador debe asignarte puntos de reciclaje para que puedas gestionarlos desde aquí. Contacta con administración para solicitar asignación de puntos.
+            </p>
           </CardContent>
         </Card>
       ) : (

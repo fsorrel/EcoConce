@@ -7,6 +7,8 @@ import cl.ecoconce.entity.*;
 import cl.ecoconce.exception.RecursoNoEncontradoException;
 import cl.ecoconce.exception.ReglaNegocioException;
 import cl.ecoconce.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,8 @@ import java.util.Set;
 
 @Service
 public class FormularioReciclajeService {
+    private static final Logger log = LoggerFactory.getLogger(FormularioReciclajeService.class);
+    
     private final UsuarioRepository usuarioRepository;
     private final PuntoReciclajeRepository puntoRepository;
     private final MaterialRepository materialRepository;
@@ -46,6 +50,9 @@ public class FormularioReciclajeService {
 
     @Transactional
     public FormularioResponse crear(Long usuarioId, FormularioRequest request) {
+        log.info("Nuevo formulario: usuarioId={}, puntoId={}, distancia={}m",
+                 usuarioId, request.puntoId(), request.distanciaMetros());
+        
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
 
@@ -54,6 +61,15 @@ public class FormularioReciclajeService {
 
         validarDistancia(request.distanciaMetros(), punto);
         validarMaterialesDelFormulario(punto, request.materiales());
+
+        // Prevenir formularios duplicados: evitar que un usuario tenga múltiples PENDIENTE en el mismo punto
+        boolean tienePendiente = formularioRepository.existsByUsuarioIdAndPuntoIdAndEstadoIgnoreCase(
+                usuarioId, request.puntoId(), "PENDIENTE");
+        if (tienePendiente) {
+            throw new ReglaNegocioException(
+                    "Ya tienes un formulario pendiente de revisión para este punto de reciclaje. " +
+                    "Espera a que sea revisado antes de enviar otro.");
+        }
 
         String estadoInicial = punto.getMantenedor() == null ? "PUNTO_SIN_REVISOR" : "PENDIENTE";
 
@@ -90,12 +106,17 @@ public class FormularioReciclajeService {
 
         formulario.setTotalPuntosObtenidos(total);
         formulario = formularioRepository.save(formulario);
+        
+        log.info("Formulario creado: id={}, puntos={}", formulario.getId(),
+                 formulario.getTotalPuntosObtenidos());
 
         return mapper.toFormulario(formulario);
     }
 
     @Transactional
     public FormularioResponse aprobar(Long formularioId) {
+        log.info("Cambio de estado formulario: id={}, nuevoEstado=APROBADO", formularioId);
+        
         FormularioReciclaje formulario = formularioRepository.findById(formularioId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Formulario no encontrado"));
 
@@ -127,6 +148,8 @@ public class FormularioReciclajeService {
 
     @Transactional
     public FormularioResponse rechazar(Long formularioId, String observacion) {
+        log.info("Cambio de estado formulario: id={}, nuevoEstado=RECHAZADO", formularioId);
+        
         FormularioReciclaje formulario = formularioRepository.findById(formularioId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Formulario no encontrado"));
 
