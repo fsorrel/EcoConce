@@ -402,6 +402,9 @@ export function Register() {
         comunaId: Number(formData.comunaId),
         direccion: formData.direccion.trim(),
         rolId: 1,
+        // Consentimientos Ley 21.719: ahora se envían y persisten en el backend
+        consentimientoGeneral: formData.consentimientoGeneral,
+        consentimientoSexoGenero: formData.consentimientoSexoGenero,
       });
 
       // El backend ya devuelve el usuario creado (con su id); combinamos esos datos

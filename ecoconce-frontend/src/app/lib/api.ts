@@ -492,9 +492,11 @@ export const api = {
       method: "PUT",
     }),
 
-  canjearPremio: (premioId: number, usuarioId: number) =>
+  canjearPremio: (premioId: number, usuarioId: number, idempotencyKey?: string) =>
     apiFetch<CanjeResponse>(`/api/premios/${premioId}/canjear?usuarioId=${usuarioId}`, {
       method: "POST",
+      // Idempotency-Key evita canjes duplicados ante doble clic o reintento de red
+      headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {},
     }),
 
   // Datos del usuario autenticado (seguro: solo "yo", a partir del JWT)

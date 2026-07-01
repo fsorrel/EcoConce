@@ -3,6 +3,7 @@ package cl.ecoconce.service;
 import cl.ecoconce.entity.*;
 import cl.ecoconce.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 
 @Component
+@Order(1) // Debe correr antes que GuiaSeeder (que necesita los materiales ya creados)
 public class DataSeeder implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -162,9 +164,7 @@ public class DataSeeder implements CommandLineRunner {
         guardarMaterialesPunto(costanera, petColor, petTransparente, tetra, cartonesCartulinas, papelCafe, papelBlancoTintaNegra);
         guardarMaterialesPunto(duoc, pilas, electronicos, aluminio, petTransparente, petColor, tetra, cartonesCartulinas, papelCafe, papelBlancoTintaNegra);
         
-        guiaRepository.save(GuiaReciclaje.builder().titulo("Aprende a separar residuos en casa").descripcion("Guía rápida para preparar tus materiales antes de reciclar.").contenido("Lava los envases, aplasta botellas, separa tapas y separa plásticos, papeles, metales y envases Tetra antes de llevarlos al ecopunto.").material(petTransparente).build());
-        guiaRepository.save(GuiaReciclaje.builder().titulo("Cómo declarar materiales correctamente").descripcion("Consejos para usar las unidades permitidas del formulario.").contenido("Elige el material exacto y luego selecciona solo una de las unidades permitidas: unidad, bolsa, caja, saco u otro, según corresponda.").material(cartonesCartulinas).build());
-        guiaRepository.save(GuiaReciclaje.builder().titulo("Preparación de PET, papel y cartón").descripcion("Consejos para entregar materiales limpios y compactados.").contenido("Lava envases, aplasta botellas PET, pliega cartones y mantén papel blanco, papel café y cartulinas separados.").material(petColor).build());
+        // Las guías las siembra GuiaSeeder (idempotente: una por material + la del kit de compostaje).
 
        premioRepository.save(Premio.builder()
                 .nombre("Bolsa reutilizable EcoConce")

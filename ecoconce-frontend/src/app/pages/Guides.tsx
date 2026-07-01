@@ -3,6 +3,13 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../components/ui/dialog";
 import { api, Guia } from "../lib/api";
 import { Search, BookOpen, Clock, User, ClipboardList } from "lucide-react";
 
@@ -11,6 +18,7 @@ export function Guides() {
   const [selectedMaterial, setSelectedMaterial] = useState("todos");
   const [guides, setGuides] = useState<Guia[]>([]);
   const [error, setError] = useState("");
+  const [guiaSeleccionada, setGuiaSeleccionada] = useState<Guia | null>(null);
 
   useEffect(() => {
     api.guias()
@@ -63,7 +71,7 @@ export function Guides() {
                   <span className="flex items-center gap-2"><Clock className="w-4 h-4" />Lectura rápida</span>
                   <span className="flex items-center gap-2"><User className="w-4 h-4" />EcoConce</span>
                 </div>
-                <Button size="lg" className="bg-white text-[#3d5a47] hover:bg-gray-100">Leer Guía</Button>
+                <Button size="lg" className="bg-white text-[#3d5a47] hover:bg-gray-100" onClick={() => setGuiaSeleccionada(featured)}>Leer Guía</Button>
               </div>
               <div className="flex items-center justify-center"><div className="text-9xl">📚</div></div>
             </div>
@@ -86,10 +94,10 @@ export function Guides() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredGuides.map((guide) => (
-            <Card key={guide.id} className="border-[#6fae7f]/20 hover:shadow-lg transition cursor-pointer group">
+            <Card key={guide.id} className="border-[#6fae7f]/20 hover:shadow-lg transition cursor-pointer group" onClick={() => setGuiaSeleccionada(guide)}>
               <CardContent className="p-6">
                 <div className="w-full aspect-video bg-gradient-to-br from-[#e8f5e9] to-[#c8e6c9] rounded-lg mb-4 flex items-center justify-center text-6xl">♻️</div>
-                <Badge variant="outline" className="mb-3 border-[#6fae7f] text-[#3d5a47]">{guide.material}</Badge>
+                <Badge variant="outline" className="mb-3 border-[#6fae7f] text-[#3d5a47]">{guide.material ?? "General"}</Badge>
                 <h3 className="font-bold text-lg text-[#2d4437] mb-2 group-hover:text-[#3d5a47] transition">{guide.titulo}</h3>
                 <p className="text-sm text-gray-600 mb-4 line-clamp-3">{guide.descripcion}</p>
                 <Button variant="outline" size="sm" className="w-full border-[#3d5a47] text-[#3d5a47] hover:bg-[#3d5a47] hover:text-white group-hover:bg-[#3d5a47] group-hover:text-white transition">
@@ -113,6 +121,23 @@ export function Guides() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal con el contenido completo de la guía */}
+      <Dialog open={guiaSeleccionada !== null} onOpenChange={(open) => { if (!open) setGuiaSeleccionada(null); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="border-[#6fae7f] text-[#3d5a47]">{guiaSeleccionada?.material ?? "General"}</Badge>
+            </div>
+            <DialogTitle className="text-2xl text-[#2d4437]">{guiaSeleccionada?.titulo}</DialogTitle>
+            <DialogDescription className="text-gray-600 mt-1">{guiaSeleccionada?.descripcion}</DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
+            {guiaSeleccionada?.contenido}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -275,7 +275,8 @@ public class PremioControllerTest {
                 1L, 1L, "Termo Ecológico", 500, "CANJE-12345", "COMPLETADO", "N", null, 1500, LocalDateTime.now()
         );
 
-        when(canjeService.canjear(1L, 1L)).thenReturn(canjeResponse);
+        // El controller ahora pasa también la Idempotency-Key (null si no viene en el header)
+        when(canjeService.canjear(eq(1L), eq(1L), any())).thenReturn(canjeResponse);
 
         mockMvc.perform(post("/api/premios/1/canjear")
                         .param("usuarioId", "1"))

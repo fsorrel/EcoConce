@@ -1,0 +1,32 @@
+# ===== Dependencias =====
+node_modules/
+
+# ===== Builds =====
+target/
+dist/
+build/
+.vite/
+
+# ===== Cobertura de tests =====
+coverage/
+*.lcov
+**/site/jacoco/
+
+# ===== Variables de entorno (se versiona .env.example) =====
+.env
+.env.local
+.env.*.local
+
+# ===== Logs y archivos de salida =====
+*.log
+salida-backend.txt
+test-output.txt
+REVISION_NPM_INSTALL.txt
+
+# ===== IDE / Editor =====
+.idea/
+*.iml
+
+# ===== Sistema operativo =====
+.DS_Store
+Thumbs.db

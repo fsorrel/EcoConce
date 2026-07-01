@@ -33,7 +33,25 @@ public class CanjeService {
 
     @Transactional
     public CanjeResponse canjear(Long usuarioId, Long premioId) {
+        return canjear(usuarioId, premioId, null);
+    }
+
+    @Transactional
+    public CanjeResponse canjear(Long usuarioId, Long premioId, String idempotencyKey) {
         log.info("Intento de canje: usuarioId={}, premioId={}", usuarioId, premioId);
+
+        String clave = (idempotencyKey == null || idempotencyKey.isBlank()) ? null : idempotencyKey.trim();
+
+        // Idempotencia: si ya se procesó un canje con esta clave, se devuelve el mismo
+        // resultado en lugar de ejecutar un segundo canje (doble clic / reintento de red).
+        if (clave != null) {
+            var existente = canjeRepository.findByIdempotencyKey(clave);
+            if (existente.isPresent()) {
+                HistorialPremioCanjeado canjePrevio = existente.get();
+                log.info("Canje idempotente reutilizado: clave={}, canjeId={}", clave, canjePrevio.getId());
+                return toCanjeResponse(canjePrevio, canjePrevio.getUsuario().getPuntos());
+            }
+        }
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
@@ -72,6 +90,7 @@ public class CanjeService {
                 .envioDomicilio(envioDomicilio)
                 .direccionEnvio(direccionEnvio)
                 .observacion("Canje generado desde la aplicación")
+                .idempotencyKey(clave)
                 .build());
 
         movimientoRepository.save(MovimientoPuntosUsuario.builder()

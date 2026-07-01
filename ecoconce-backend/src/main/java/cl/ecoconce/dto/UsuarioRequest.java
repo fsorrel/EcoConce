@@ -16,5 +16,8 @@ public record UsuarioRequest(
         String telefono,
         @NotNull Long comunaId,
         String direccion,
-        @NotNull Long rolId
+        @NotNull Long rolId,
+        // Consentimientos Ley 21.719
+        @NotNull Boolean consentimientoGeneral,
+        Boolean consentimientoSexoGenero
 ) {}

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface HistorialPremioCanjeadoRepository extends JpaRepository<HistorialPremioCanjeado, Long> {
     @Override
@@ -16,4 +17,8 @@ public interface HistorialPremioCanjeadoRepository extends JpaRepository<Histori
 
     @EntityGraph(attributePaths = {"usuario", "premio"})
     List<HistorialPremioCanjeado> findByEstadoOrderByFechaCanjeDesc(String estado);
+
+    // Idempotencia de canjes: recupera el canje ya realizado con esa clave (si existe)
+    @EntityGraph(attributePaths = {"usuario", "premio"})
+    Optional<HistorialPremioCanjeado> findByIdempotencyKey(String idempotencyKey);
 }

@@ -150,7 +150,9 @@ public class UsuarioControllerTest {
                 "987654321",
                 1L,
                 "Calle Falsa 123",
-                2L
+                2L,
+                true,
+                true
         );
 
         Comuna comuna = new Comuna(1L, "Concepcion", null);
@@ -195,7 +197,9 @@ public class UsuarioControllerTest {
                 "987654321",
                 1L,
                 "Calle Falsa 123",
-                2L
+                2L,
+                true,
+                true
         );
 
         when(usuarioRepository.existsByRut(request.rut())).thenReturn(true);
@@ -219,7 +223,9 @@ public class UsuarioControllerTest {
                 "987654321",
                 1L,
                 "Calle Falsa 123",
-                2L
+                2L,
+                true,
+                true
         );
 
         when(usuarioRepository.existsByRut(request.rut())).thenReturn(false);
@@ -244,7 +250,9 @@ public class UsuarioControllerTest {
                 "987654321",
                 1L,
                 "Calle Falsa 123",
-                2L
+                2L,
+                true,
+                true
         );
 
         when(usuarioRepository.existsByRut(request.rut())).thenReturn(false);
@@ -270,7 +278,9 @@ public class UsuarioControllerTest {
                 "987654321",
                 1L,
                 "Calle Falsa 123",
-                2L
+                2L,
+                true,
+                true
         );
 
         Comuna comuna = new Comuna(1L, "Concepcion", null);

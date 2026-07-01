@@ -46,6 +46,10 @@ public class HistorialPremioCanjeado {
     @Lob
     private String observacion;
 
+    // Idempotencia de canjes: evita duplicar un canje ante doble clic o reintento de red
+    @Column(name = "idempotency_key", length = 64, unique = true)
+    private String idempotencyKey;
+
     @PrePersist
     void prePersist() {
         if (estado == null) estado = "PENDIENTE";
@@ -180,6 +184,14 @@ public class HistorialPremioCanjeado {
         this.observacion = observacion;
     }
 
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+    }
+
     public static HistorialPremioCanjeadoBuilder builder() {
         return new HistorialPremioCanjeadoBuilder();
     }
@@ -197,6 +209,7 @@ public class HistorialPremioCanjeado {
         private LocalDateTime fechaCanje;
         private LocalDateTime fechaEntrega;
         private String observacion;
+        private String idempotencyKey;
 
         public HistorialPremioCanjeadoBuilder id(Long id) {
             this.id = id;
@@ -258,8 +271,13 @@ public class HistorialPremioCanjeado {
             return this;
         }
 
+        public HistorialPremioCanjeadoBuilder idempotencyKey(String idempotencyKey) {
+            this.idempotencyKey = idempotencyKey;
+            return this;
+        }
+
         public HistorialPremioCanjeado build() {
-            return new HistorialPremioCanjeado(
+            HistorialPremioCanjeado canje = new HistorialPremioCanjeado(
                     id,
                     usuario,
                     premio,
@@ -273,6 +291,8 @@ public class HistorialPremioCanjeado {
                     fechaEntrega,
                     observacion
             );
+            canje.setIdempotencyKey(idempotencyKey);
+            return canje;
         }
     }
 }

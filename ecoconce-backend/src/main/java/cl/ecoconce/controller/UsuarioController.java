@@ -166,6 +166,10 @@ public class UsuarioController {
                 .rol(rol)
                 .puntos(0)
                 .activo("S")
+                // Consentimientos Ley 21.719: se persiste el consentimiento del titular
+                .consentimientoGeneral(Boolean.TRUE.equals(request.consentimientoGeneral()) ? "S" : "N")
+                .consentimientoSexoGenero(Boolean.TRUE.equals(request.consentimientoSexoGenero()) ? "S" : "N")
+                .fechaConsentimiento(LocalDateTime.now())
                 .build());
 
         return mapper.toUsuarioResumen(usuario);
@@ -225,7 +229,7 @@ public class UsuarioController {
         return mapper.toUsuarioAdminDto(actualizado);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or authentication.principal.username == #id.toString()")
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(authentication, #id)")
     @Transactional
     @DeleteMapping("/{id}/cuenta")
     public ResponseEntity<Map<String, String>> solicitarBajaCuenta(@PathVariable Long id) {

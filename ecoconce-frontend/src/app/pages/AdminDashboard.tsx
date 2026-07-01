@@ -17,6 +17,16 @@ import type { Premio, PuntoReciclaje, ReportePuntoResponse, UsuarioAdmin } from 
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const formatDate = (value: string | null | undefined) => {
   if (!value) return "Fecha no disponible";
@@ -55,6 +65,9 @@ export function AdminDashboard() {
   const [reportes, setReportes] = useState<ReportePuntoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [datosComuna, setDatosComuna] = useState<{ comuna: string; cantidad: number }[]>([]);
+  const [datosSexoGenero, setDatosSexoGenero] = useState<{ categoria: string; cantidad: number }[]>([]);
+  const [cargandoStats, setCargandoStats] = useState(false);
 
   const cargarDashboard = async () => {
     setLoading(true);
@@ -97,9 +110,61 @@ export function AdminDashboard() {
     }
   };
 
+  // Calcula los datos de los gráficos a partir de los formularios APROBADOS,
+  // cruzando punto→comuna y usuario→sexo/género. Misma lógica que la exportación a Excel,
+  // pero rendida en pantalla en lugar de quedar solo en el archivo descargado.
+  const cargarEstadisticasVisuales = async () => {
+    setCargandoStats(true);
+    try {
+      const formularios = await api.formulariosAdminTodos();
+      const aprobados = formularios.filter(
+        (f) => String(f.estado ?? "").trim().toUpperCase() === "APROBADO"
+      );
+
+      const puntosPorId = new Map(puntos.map((p) => [Number(p.id), p]));
+      const usuariosPorId = new Map(usuarios.map((u) => [Number(u.id), u]));
+
+      const conteoComunas = new Map<string, number>();
+      const conteoSexo = new Map<string, number>();
+
+      for (const f of aprobados) {
+        const punto = puntosPorId.get(Number(f.punto_id ?? 0));
+        const usuario = usuariosPorId.get(Number(f.usuario_id ?? 0));
+        const comuna = punto?.comuna?.trim() || "Sin comuna";
+        const sexo = usuario?.sexoGenero?.trim() || "Sin información";
+        conteoComunas.set(comuna, (conteoComunas.get(comuna) ?? 0) + 1);
+        conteoSexo.set(sexo, (conteoSexo.get(sexo) ?? 0) + 1);
+      }
+
+      setDatosComuna(
+        Array.from(conteoComunas.entries())
+          .map(([comuna, cantidad]) => ({ comuna, cantidad }))
+          .sort((a, b) => b.cantidad - a.cantidad)
+          .slice(0, 10)
+      );
+      setDatosSexoGenero(
+        Array.from(conteoSexo.entries())
+          .map(([categoria, cantidad]) => ({ categoria, cantidad }))
+          .sort((a, b) => b.cantidad - a.cantidad)
+      );
+    } catch {
+      // silencioso — los gráficos quedan vacíos si falla
+    } finally {
+      setCargandoStats(false);
+    }
+  };
+
   useEffect(() => {
     cargarDashboard();
   }, []);
+
+  // Carga las estadísticas visuales cuando ya hay puntos o usuarios cargados.
+  useEffect(() => {
+    if (puntos.length > 0 || usuarios.length > 0) {
+      cargarEstadisticasVisuales();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puntos, usuarios]);
 
   const resumen = useMemo(() => {
     const puntosActivos = puntos.filter((punto) => {
@@ -737,6 +802,125 @@ export function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Estadísticas visuales (mismos datos que la exportación a Excel) */}
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold text-[#2d4437]">Estadísticas de reciclaje</h2>
+            <p className="text-sm text-gray-500">
+              Basado en formularios con estado APROBADO. Se actualiza al refrescar el panel.
+            </p>
+          </div>
+
+          <div className="grid xl:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Reciclaje por comuna</CardTitle>
+                <CardDescription>Top 10 comunas con más formularios aprobados</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {cargandoStats ? (
+                  <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+                    Cargando datos…
+                  </div>
+                ) : datosComuna.length === 0 ? (
+                  <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+                    Sin formularios aprobados todavía
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={datosComuna} layout="vertical" margin={{ left: 16 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 12 }} />
+                      <YAxis dataKey="comuna" type="category" width={110} tick={{ fontSize: 11 }} />
+                      <Tooltip formatter={(value) => [value, "Formularios"]} />
+                      <Bar dataKey="cantidad" radius={[0, 4, 4, 0]}>
+                        {datosComuna.map((_, index) => (
+                          <Cell key={index} fill={index === 0 ? "#3d5a47" : "#6fae7f"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Reciclaje por sexo/género</CardTitle>
+                <CardDescription>
+                  Distribución de formularios aprobados por categoría declarada
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {cargandoStats ? (
+                  <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+                    Cargando datos…
+                  </div>
+                ) : datosSexoGenero.length === 0 ? (
+                  <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+                    Sin formularios aprobados todavía
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={datosSexoGenero} margin={{ bottom: 24 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="categoria" tick={{ fontSize: 11 }} angle={-15} textAnchor="end" />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip formatter={(value) => [value, "Formularios"]} />
+                      <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
+                        {datosSexoGenero.map((_, index) => (
+                          <Cell key={index} fill={index % 2 === 0 ? "#3d5a47" : "#6fae7f"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top usuarios activos */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Usuarios más activos</CardTitle>
+              <CardDescription>Ciudadanos con más puntos acumulados</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {usuarios.length === 0 ? (
+                <p className="text-sm text-gray-400">Sin datos de usuarios.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-gray-500">
+                        <th className="pb-2 font-medium">#</th>
+                        <th className="pb-2 font-medium">Alias</th>
+                        <th className="pb-2 font-medium">Comuna</th>
+                        <th className="pb-2 font-medium text-right">Puntos acumulados</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...usuarios]
+                        .sort((a, b) => (b.puntos ?? 0) - (a.puntos ?? 0))
+                        .slice(0, 10)
+                        .map((u, index) => (
+                          <tr key={u.id} className="border-b last:border-0">
+                            <td className="py-2 text-gray-400">{index + 1}</td>
+                            <td className="py-2 font-medium text-[#2d4437]">
+                              {u.nombreAlias ?? `Usuario #${u.id}`}
+                            </td>
+                            <td className="py-2 text-gray-600">{u.comuna ?? "—"}</td>
+                            <td className="py-2 text-right font-mono text-[#3d5a47]">
+                              {(u.puntos ?? 0).toLocaleString("es-CL")}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

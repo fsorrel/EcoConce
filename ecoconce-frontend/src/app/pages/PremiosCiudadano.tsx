@@ -83,7 +83,10 @@ export function PremiosCiudadano() {
     setCanjeandoId(premio.id);
 
     try {
-      const response = await api.canjearPremio(premio.id, currentUser.id);
+      // Clave de idempotencia: si el clic se repite o la red reintenta, el backend
+      // devuelve el mismo canje en lugar de descontar puntos dos veces.
+      const idempotencyKey = crypto.randomUUID();
+      const response = await api.canjearPremio(premio.id, currentUser.id, idempotencyKey);
 
       setSuccess(response);
       setUsuario({ ...currentUser, puntos: response.puntosRestantes });

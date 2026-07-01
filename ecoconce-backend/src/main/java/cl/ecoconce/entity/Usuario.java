@@ -56,11 +56,23 @@ public class Usuario {
     @Column(name = "fecha_ultimo_acceso")
     private LocalDateTime fechaUltimoAcceso;
 
+    // Consentimientos Ley 21.719 (registro auditado del consentimiento del titular)
+    @Column(name = "consentimiento_general", nullable = false, length = 1)
+    private String consentimientoGeneral = "N";
+
+    @Column(name = "consentimiento_sexo_genero", nullable = false, length = 1)
+    private String consentimientoSexoGenero = "N";
+
+    @Column(name = "fecha_consentimiento")
+    private LocalDateTime fechaConsentimiento;
+
     @PrePersist
     void prePersist() {
         if (puntos == null) puntos = 0;
         if (activo == null) activo = "S";
         if (fechaRegistro == null) fechaRegistro = LocalDateTime.now();
+        if (consentimientoGeneral == null) consentimientoGeneral = "N";
+        if (consentimientoSexoGenero == null) consentimientoSexoGenero = "N";
     }
 
 
@@ -205,6 +217,30 @@ public class Usuario {
         this.fechaUltimoAcceso = fechaUltimoAcceso;
     }
 
+    public String getConsentimientoGeneral() {
+        return consentimientoGeneral;
+    }
+
+    public void setConsentimientoGeneral(String consentimientoGeneral) {
+        this.consentimientoGeneral = consentimientoGeneral;
+    }
+
+    public String getConsentimientoSexoGenero() {
+        return consentimientoSexoGenero;
+    }
+
+    public void setConsentimientoSexoGenero(String consentimientoSexoGenero) {
+        this.consentimientoSexoGenero = consentimientoSexoGenero;
+    }
+
+    public LocalDateTime getFechaConsentimiento() {
+        return fechaConsentimiento;
+    }
+
+    public void setFechaConsentimiento(LocalDateTime fechaConsentimiento) {
+        this.fechaConsentimiento = fechaConsentimiento;
+    }
+
     public static UsuarioBuilder builder() {
         return new UsuarioBuilder();
     }
@@ -225,6 +261,9 @@ public class Usuario {
         private String activo;
         private LocalDateTime fechaRegistro;
         private LocalDateTime fechaUltimoAcceso;
+        private String consentimientoGeneral = "N";
+        private String consentimientoSexoGenero = "N";
+        private LocalDateTime fechaConsentimiento;
 
         public UsuarioBuilder id(Long id) {
             this.id = id;
@@ -301,8 +340,27 @@ public class Usuario {
             return this;
         }
 
+        public UsuarioBuilder consentimientoGeneral(String consentimientoGeneral) {
+            this.consentimientoGeneral = consentimientoGeneral;
+            return this;
+        }
+
+        public UsuarioBuilder consentimientoSexoGenero(String consentimientoSexoGenero) {
+            this.consentimientoSexoGenero = consentimientoSexoGenero;
+            return this;
+        }
+
+        public UsuarioBuilder fechaConsentimiento(LocalDateTime fechaConsentimiento) {
+            this.fechaConsentimiento = fechaConsentimiento;
+            return this;
+        }
+
         public Usuario build() {
-            return new Usuario(id, rut, nombreAlias, correo, contrasena, sexoGenero, fechaNacimiento, telefono, comuna, direccion, puntos, rol, activo, fechaRegistro, fechaUltimoAcceso);
+            Usuario usuario = new Usuario(id, rut, nombreAlias, correo, contrasena, sexoGenero, fechaNacimiento, telefono, comuna, direccion, puntos, rol, activo, fechaRegistro, fechaUltimoAcceso);
+            usuario.setConsentimientoGeneral(consentimientoGeneral);
+            usuario.setConsentimientoSexoGenero(consentimientoSexoGenero);
+            usuario.setFechaConsentimiento(fechaConsentimiento);
+            return usuario;
         }
     }
 }

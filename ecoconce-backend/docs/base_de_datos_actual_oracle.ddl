@@ -37,7 +37,7 @@ CREATE TABLE detalle_formulario_materiales
         ( START WITH 1 NOCACHE )  NOT NULL , 
      formulario_id       NUMBER  NOT NULL , 
      material_id         NUMBER  NOT NULL , 
-     cantidad_declarada  NUMBER  NOT NULL , 
+     cantidad_declarada  FLOAT (53)  NOT NULL , 
      unidad_declarada    VARCHAR2 (30) DEFAULT 'UNIDAD'  NOT NULL , 
      puntos_obtenidos    NUMBER DEFAULT 0  NOT NULL , 
      observacion         CLOB 
@@ -84,8 +84,8 @@ CREATE TABLE estado_punto
 ALTER TABLE estado_punto 
     ADD CONSTRAINT estado_punto_PK PRIMARY KEY ( id ) ;
 
-ALTER TABLE estado_punto 
-    ADD CONSTRAINT INDEX_1 UNIQUE ( nombre ) ;
+ALTER TABLE estado_punto
+    ADD CONSTRAINT uq_estado_punto_nombre UNIQUE ( nombre ) ;
 
 CREATE TABLE formularios_reciclaje 
     ( 
@@ -93,7 +93,7 @@ CREATE TABLE formularios_reciclaje
         ( START WITH 1 NOCACHE )  NOT NULL , 
      usuario_id             NUMBER  NOT NULL , 
      punto_id               NUMBER  NOT NULL , 
-     distancia_metros       NUMBER (6,2)  NOT NULL , 
+     distancia_metros       FLOAT (53)  NOT NULL , 
      total_puntos_obtenidos NUMBER DEFAULT 0  NOT NULL , 
      estado                 VARCHAR2 (20) DEFAULT 'PENDIENTE'  NOT NULL , 
      observacion            CLOB , 
@@ -175,6 +175,9 @@ CREATE TABLE historial_premios_canjeados
      estado          VARCHAR2 (20) DEFAULT 'PENDIENTE'  NOT NULL , 
      fecha_canje     TIMESTAMP DEFAULT CURRENT_TIMESTAMP , 
      fecha_entrega   TIMESTAMP , 
+     envio_domicilio CHAR (1) DEFAULT 'N'  NOT NULL ,
+     direccion_envio VARCHAR2 (255) ,
+     idempotency_key VARCHAR2 (64) ,
      observacion     CLOB 
     ) 
     LOGGING 
@@ -199,7 +202,18 @@ ALTER TABLE historial_premios_canjeados
     ADD CONSTRAINT historial_premios_canjeados_PK PRIMARY KEY ( id ) ;
 
 ALTER TABLE historial_premios_canjeados 
-    ADD CONSTRAINT INDEX_1 UNIQUE ( codigo_canje ) ;
+    ADD CONSTRAINT uq_hpc_codigo_canje UNIQUE ( codigo_canje ) ;
+
+ALTER TABLE historial_premios_canjeados
+    ADD CONSTRAINT chk_hpc_envio_domicilio
+    CHECK (envio_domicilio IN ('S', 'N'))
+;
+
+CREATE UNIQUE INDEX idx_hpc_idempotency ON historial_premios_canjeados
+    (
+     idempotency_key ASC
+    )
+;
 
 CREATE TABLE historial_recolecciones_puntos 
     ( 
@@ -241,11 +255,11 @@ CREATE TABLE materiales
 ALTER TABLE materiales 
     ADD CONSTRAINT materiales_PK PRIMARY KEY ( id ) ;
 
-ALTER TABLE materiales 
-    ADD CONSTRAINT INDEX_1 UNIQUE ( nombre ) ;
+ALTER TABLE materiales
+    ADD CONSTRAINT uq_materiales_nombre UNIQUE ( nombre ) ;
 
 ALTER TABLE materiales 
-    ADD CONSTRAINT INDEX_2 UNIQUE ( codigo_identificador ) ;
+    ADD CONSTRAINT uq_materiales_codigo UNIQUE ( codigo_identificador ) ;
 
 CREATE TABLE movimientos_puntos_usuario 
     ( 
@@ -348,8 +362,8 @@ CREATE TABLE puntos_reciclaje
      descripcion          CLOB  NOT NULL , 
      comuna_id            NUMBER  NOT NULL , 
      direccion            VARCHAR2 (200) , 
-     latitud              NUMBER (10,7)  NOT NULL , 
-     longitud             NUMBER (10,7)  NOT NULL , 
+     latitud              FLOAT (53)  NOT NULL , 
+     longitud             FLOAT (53)  NOT NULL , 
      radio_validacion_m   NUMBER DEFAULT 50  NOT NULL , 
      estado_id            NUMBER  NOT NULL , 
      mantenedor_id        NUMBER , 
@@ -388,8 +402,8 @@ CREATE TABLE regiones
 ALTER TABLE regiones 
     ADD CONSTRAINT regiones_PK PRIMARY KEY ( id ) ;
 
-ALTER TABLE regiones 
-    ADD CONSTRAINT INDEX_1 UNIQUE ( nombre ) ;
+ALTER TABLE regiones
+    ADD CONSTRAINT uq_regiones_nombre UNIQUE ( nombre ) ;
 
 CREATE TABLE reportes_puntos 
     ( 
@@ -424,8 +438,8 @@ CREATE TABLE roles
 ALTER TABLE roles 
     ADD CONSTRAINT roles_PK PRIMARY KEY ( id ) ;
 
-ALTER TABLE roles 
-    ADD CONSTRAINT INDEX_1 UNIQUE ( nombre ) ;
+ALTER TABLE roles
+    ADD CONSTRAINT uq_roles_nombre UNIQUE ( nombre ) ;
 
 CREATE TABLE tipo_reporte 
     ( 
@@ -439,8 +453,8 @@ CREATE TABLE tipo_reporte
 ALTER TABLE tipo_reporte 
     ADD CONSTRAINT tipo_reporte_PK PRIMARY KEY ( id ) ;
 
-ALTER TABLE tipo_reporte 
-    ADD CONSTRAINT INDEX_1 UNIQUE ( nombre ) ;
+ALTER TABLE tipo_reporte
+    ADD CONSTRAINT uq_tipo_reporte_nombre UNIQUE ( nombre ) ;
 
 CREATE TABLE usuarios 
     ( 
@@ -459,6 +473,9 @@ CREATE TABLE usuarios
      rol_id              NUMBER  NOT NULL , 
      activo              CHAR (1) DEFAULT 'S'  NOT NULL , 
      fecha_registro      TIMESTAMP DEFAULT CURRENT_TIMESTAMP , 
+     consentimiento_general     CHAR (1) DEFAULT 'N'  NOT NULL ,
+     consentimiento_sexo_genero CHAR (1) DEFAULT 'N'  NOT NULL ,
+     fecha_consentimiento       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
      fecha_ultimo_acceso TIMESTAMP 
     ) 
     LOGGING 
@@ -488,10 +505,20 @@ ALTER TABLE usuarios
     ADD CONSTRAINT usuarios_PK PRIMARY KEY ( id ) ;
 
 ALTER TABLE usuarios 
-    ADD CONSTRAINT INDEX_1 UNIQUE ( rut ) ;
+    ADD CONSTRAINT uq_usuarios_rut UNIQUE ( rut ) ;
 
 ALTER TABLE usuarios 
-    ADD CONSTRAINT INDEX_2 UNIQUE ( correo ) ;
+    ADD CONSTRAINT uq_usuarios_correo UNIQUE ( correo ) ;
+
+ALTER TABLE usuarios
+    ADD CONSTRAINT chk_usr_consentimiento_gral
+    CHECK (consentimiento_general IN ('S', 'N'))
+;
+
+ALTER TABLE usuarios
+    ADD CONSTRAINT chk_usr_consentimiento_sg
+    CHECK (consentimiento_sexo_genero IN ('S', 'N'))
+;
 
 ALTER TABLE comunas 
     ADD CONSTRAINT fk_comuna_region FOREIGN KEY 
