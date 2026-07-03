@@ -128,6 +128,9 @@ public class PremioController {
         return mapper.toPremio(premioRepository.save(premio));
     }
 
+    // IDOR: un ciudadano solo puede canjear con SUS propios ecopuntos (un ADMIN por cualquiera).
+    // Sin esto, cualquiera podría gastar los puntos de otro usuario pasando su id por query.
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(authentication, #usuarioId)")
     @PostMapping("/{premioId}/canjear")
     public CanjeResponse canjear(
             @PathVariable Long premioId,

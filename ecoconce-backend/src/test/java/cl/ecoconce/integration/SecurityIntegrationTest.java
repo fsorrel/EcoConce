@@ -336,4 +336,94 @@ public class SecurityIntegrationTest {
                 )
         );
     }
+
+    // ========== CONTROL DE ACCESO — FUNCIONES ADMINISTRATIVAS (RF15) ==========
+
+    /**
+     * PA-03: Ciudadano intenta aprobar un formulario (función solo-ADMIN) → 403.
+     * @PreAuthorize se evalúa antes del cuerpo, por lo que responde 403 aun si el id no existe.
+     */
+    @Test
+    public void pa03_ciudadanoApruebaFormulario_returns403() throws Exception {
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/formularios/1/aprobar")
+                        .header("Authorization", "Bearer " + tokenCiudadano))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * PA-04: Ciudadano intenta rechazar un formulario (función solo-ADMIN) → 403.
+     */
+    @Test
+    public void pa04_ciudadanoRechazaFormulario_returns403() throws Exception {
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/formularios/1/rechazar")
+                        .header("Authorization", "Bearer " + tokenCiudadano))
+                .andExpect(status().isForbidden());
+    }
+
+    // ========== CONTROL DE ACCESO — IDOR (recursos de otros usuarios) ==========
+
+    /**
+     * IDOR-02: Ciudadano intenta canjear un premio con los ecopuntos de OTRO usuario → 403.
+     * Sin esta protección, cualquiera podría gastar los puntos ajenos pasando su id por query.
+     */
+    @Test
+    public void idor02_ciudadanoCanjeaConPuntosDeOtro_returns403() throws Exception {
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/premios/1/canjear")
+                        .param("usuarioId", "999999")
+                        .header("Authorization", "Bearer " + tokenCiudadano))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * IDOR-03: Ciudadano intenta ver el dashboard (puntos, actividad, medallas) de otro → 403.
+     */
+    @Test
+    public void idor03_ciudadanoVeDashboardDeOtro_returns403() throws Exception {
+        mockMvc.perform(get("/api/dashboard/999999")
+                .header("Authorization", "Bearer " + tokenCiudadano))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * IDOR-04: Listado completo de usuarios (expone correos, PII) es solo-ADMIN → 403 para ciudadano.
+     */
+    @Test
+    public void idor04_ciudadanoListaTodosLosUsuarios_returns403() throws Exception {
+        mockMvc.perform(get("/api/usuarios")
+                .header("Authorization", "Bearer " + tokenCiudadano))
+                .andExpect(status().isForbidden());
+    }
+
+    // ========== ESCALADA DE PRIVILEGIOS EN EL REGISTRO ==========
+
+    /**
+     * PRIV-01: El auto-registro (público) intenta crear un ADMIN enviando rolId=2.
+     * El sistema DEBE ignorar el rol solicitado y crear siempre un ciudadano (rol "USUARIO").
+     */
+    @Test
+    public void priv01_registroConRolAdmin_creaCiudadano() throws Exception {
+        String cuerpo = """
+                {
+                  "rut": "77777777-7",
+                  "nombreAlias": "Intruso",
+                  "correo": "intruso.priv@ecoconce.cl",
+                  "contrasena": "password123",
+                  "sexoGenero": "M",
+                  "comunaId": %d,
+                  "rolId": 2,
+                  "consentimientoGeneral": true,
+                  "consentimientoSexoGenero": true
+                }
+                """.formatted(comunaRepository.findAll().get(0).getId());
+
+        mockMvc.perform(
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/usuarios")
+                        .contentType("application/json")
+                        .content(cuerpo))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rol").value("USUARIO"));
+    }
 }

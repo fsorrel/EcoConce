@@ -106,6 +106,9 @@ public class UsuarioController {
         return new LoginResponse(token, usuario.getId(), usuario.getRol().getNombre());
     }
 
+    // Solo ADMIN: el listado completo expone correos de todos los usuarios (PII).
+    // Un ciudadano usa /me para sus propios datos.
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     @GetMapping
     public List<UsuarioResumenDto> listar() {
@@ -129,6 +132,9 @@ public class UsuarioController {
         return mapper.toUsuarioAdminDto(usuario);
     }
 
+    // IDOR: solo el propio usuario (o un ADMIN) puede consultar los datos por id;
+    // evita enumerar correos/alias/puntos de terceros.
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(authentication, #id)")
     @Transactional(readOnly = true)
     @GetMapping("/{id}")
     public UsuarioResumenDto buscar(@PathVariable Long id) {
@@ -150,8 +156,12 @@ public class UsuarioController {
         Comuna comuna = comunaRepository.findById(request.comunaId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Comuna no encontrada"));
 
-        Rol rol = rolRepository.findById(request.rolId())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Rol no encontrado"));
+        // Seguridad (escalada de privilegios): el auto-registro SIEMPRE crea un ciudadano.
+        // Se ignora request.rolId() a propósito para impedir que por API alguien se registre
+        // como ADMIN o MANTENEDOR. Asignar roles administrativos es exclusivo del panel admin
+        // (PUT /api/usuarios/admin/{id}).
+        Rol rol = rolRepository.findByNombre("USUARIO")
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol de ciudadano no configurado"));
 
         Usuario usuario = usuarioRepository.save(Usuario.builder()
                 .rut(request.rut())

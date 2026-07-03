@@ -29,16 +29,22 @@ public class FormularioReciclajeController {
     private final DetalleFormularioMaterialRepository detalleRepository;
     private final UsuarioRepository usuarioRepository;
 
+    // IDOR: un ciudadano solo puede registrar formularios a su propio nombre
+    // (un ADMIN puede hacerlo por cualquiera). Evita atribuir reciclajes a terceros.
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(authentication, #usuarioId)")
     @PostMapping("/usuario/{usuarioId}")
     public FormularioResponse crear(@PathVariable Long usuarioId, @Valid @RequestBody FormularioRequest request) {
         return formularioService.crear(usuarioId, request);
     }
 
+    // Aprobar/rechazar es una decisión administrativa (RF15): solo ADMIN.
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/aprobar")
     public FormularioResponse aprobar(@PathVariable Long id) {
         return formularioService.aprobar(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/rechazar")
     public FormularioResponse rechazar(@PathVariable Long id, @RequestBody(required = false) Map<String, String> body) {
         String observacion = body == null ? null : body.get("observacion");

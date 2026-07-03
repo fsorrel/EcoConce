@@ -173,7 +173,9 @@ public class UsuarioControllerTest {
         when(usuarioRepository.existsByRut(request.rut())).thenReturn(false);
         when(usuarioRepository.existsByCorreo(request.correo())).thenReturn(false);
         when(comunaRepository.findById(request.comunaId())).thenReturn(Optional.of(comuna));
-        when(rolRepository.findById(request.rolId())).thenReturn(Optional.of(rol));
+        // El registro fuerza el rol ciudadano ("USUARIO"), ignorando request.rolId()
+        // para prevenir escalada de privilegios.
+        when(rolRepository.findByNombre("USUARIO")).thenReturn(Optional.of(rol));
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioGuardado);
         when(mapperService.toUsuarioResumen(any(Usuario.class))).thenReturn(resumenDto);
 
@@ -288,13 +290,14 @@ public class UsuarioControllerTest {
         when(usuarioRepository.existsByRut(request.rut())).thenReturn(false);
         when(usuarioRepository.existsByCorreo(request.correo())).thenReturn(false);
         when(comunaRepository.findById(request.comunaId())).thenReturn(Optional.of(comuna));
-        when(rolRepository.findById(request.rolId())).thenReturn(Optional.empty());
+        // El registro fuerza el rol ciudadano por nombre; si no está sembrado, 404.
+        when(rolRepository.findByNombre("USUARIO")).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/api/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.mensaje", containsString("Rol no encontrado")));
+                .andExpect(jsonPath("$.mensaje", containsString("Rol de ciudadano no configurado")));
     }
 
     // --- PRUEBAS DE VISTA Y EDICIÓN ADMIN ---
